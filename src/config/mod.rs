@@ -82,7 +82,7 @@ impl Default for Config {
             challenge: 0,
             part: 0,
             quit_key: Key::Char('q'),
-            tick_rate: Duration::from_millis(200),
+            tick_rate: Duration::from_millis(100),
         }
     }
 }

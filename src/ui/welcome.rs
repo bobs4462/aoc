@@ -1,4 +1,4 @@
-use super::TermionFrame;
+use super::{Movement, TermionFrame};
 use crate::config::Year;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
@@ -53,5 +53,12 @@ impl Welcome {
             .highlight_style(Style::default().add_modifier(Modifier::BOLD))
             .highlight_symbol("⇥ ");
         f.render_stateful_widget(list, chunks[0], &mut self.state);
+    }
+
+    pub(super) fn move_selected(&mut self, movement: Movement) {
+        let index = self.state.selected().expect("List item should be selected");
+        let index = (index as isize + movement as isize + self.years.len() as isize)
+            % self.years.len() as isize;
+        self.state.select(Some(index as usize));
     }
 }

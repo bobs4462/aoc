@@ -8,3 +8,8 @@ pub mod app;
 mod welcome;
 
 type TermionFrame<'a> = Frame<'a, TermionBackend<AlternateScreen<RawTerminal<Stdout>>>>;
+
+pub enum Movement {
+    Up = -1,
+    Down = 1,
+}

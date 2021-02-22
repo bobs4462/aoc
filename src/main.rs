@@ -1,7 +1,7 @@
-use aoc::ui::app::App;
+use aoc::{event::EventProvider, ui::app::App};
 use std::io;
-use termion::input::TermRead;
-use termion::{raw::IntoRawMode, screen::AlternateScreen};
+// use termion::input::TermRead;
+use termion::{event::Key, raw::IntoRawMode, screen::AlternateScreen};
 
 use tui::{backend::TermionBackend, Terminal};
 
@@ -11,18 +11,21 @@ fn main() -> io::Result<()> {
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     let mut app = App::default();
-    let mut counter = 100;
+    let events = EventProvider::with_config(&app.config);
     loop {
         terminal.draw(|f| app.draw(f))?;
-        std::thread::sleep(std::time::Duration::from_millis(200));
-        counter -= 1;
-        if counter == 0 {
-            break;
+        if let Ok(v) = events.next() {
+            match v {
+                aoc::event::Event::Tick => {}
+                aoc::event::Event::KeyPress(k) => match k {
+                    Key::Char('j') | Key::Down => app.move_selected(aoc::ui::Movement::Down),
+                    Key::Char('k') | Key::Up => app.move_selected(aoc::ui::Movement::Up),
+                    k if (k == app.config.quit_key) => break,
+                    _ => {}
+                },
+            }
         }
     }
-    let mut stdout = io::stdout().into_raw_mode().unwrap();
-
-    let _ = io::stdin().read_passwd(&mut stdout).unwrap().unwrap();
 
     Ok(())
 }
