@@ -1,4 +1,8 @@
-use std::fmt::{Display, Formatter};
+use std::{
+    fmt::{Display, Formatter},
+    time::Duration,
+};
+use termion::event::Key;
 
 pub enum Year {
     Y0000,
@@ -11,9 +15,11 @@ pub enum Year {
 }
 
 pub struct Config {
-    year: Year,
-    challenge: usize,
-    part: usize,
+    pub year: Year,
+    pub challenge: usize,
+    pub part: usize,
+    pub quit_key: Key,
+    pub tick_rate: Duration,
 }
 
 impl Display for Year {
@@ -52,11 +58,19 @@ impl Config {
         self.part = 0;
     }
 
-    pub fn with_values(year: Year, challenge: usize, part: usize) -> Self {
+    pub fn with_values(
+        year: Year,
+        challenge: usize,
+        part: usize,
+        quit_key: char,
+        tick_rate: u64,
+    ) -> Self {
         Config {
             year,
             challenge,
             part,
+            quit_key: Key::Char(quit_key),
+            tick_rate: Duration::from_millis(tick_rate),
         }
     }
 }
@@ -67,6 +81,8 @@ impl Default for Config {
             year: Year::Y0000,
             challenge: 0,
             part: 0,
+            quit_key: Key::Char('q'),
+            tick_rate: Duration::from_millis(200),
         }
     }
 }

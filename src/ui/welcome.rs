@@ -38,8 +38,8 @@ impl Welcome {
         let block = Block::default().borders(Borders::LEFT);
         f.render_widget(block, chunks[1]);
         let chunks = Layout::default()
-            .vertical_margin(9)
-            .horizontal_margin(15)
+            .vertical_margin(11)
+            .horizontal_margin(25)
             .constraints([Constraint::Min(8)].as_ref())
             .split(chunks[1]);
         let items: Vec<ListItem> = self

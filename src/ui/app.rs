@@ -25,6 +25,8 @@ impl Default for App {
 
 impl App {
     pub fn draw(&mut self, f: &mut TermionFrame) {
-        self.welcome.draw(f);
+        match self.current_state {
+            AppState::WelcomeScreen => self.welcome.draw(f),
+        }
     }
 }
