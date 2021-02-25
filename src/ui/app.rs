@@ -35,4 +35,12 @@ impl App {
             AppState::WelcomeScreen => self.welcome.move_selected(movement),
         }
     }
+
+    pub fn pick(&mut self) {
+        match self.current_state {
+            AppState::WelcomeScreen => {
+                self.config.year = self.welcome.pick();
+            }
+        }
+    }
 }

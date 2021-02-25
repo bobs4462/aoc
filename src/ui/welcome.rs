@@ -61,4 +61,9 @@ impl Welcome {
             % self.years.len() as isize;
         self.state.select(Some(index as usize));
     }
+
+    pub(super) fn pick(&self) -> Year {
+        let index = self.state.selected().expect("List item should be selected");
+        return self.years[index];
+    }
 }

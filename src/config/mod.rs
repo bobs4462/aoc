@@ -4,6 +4,7 @@ use std::{
 };
 use termion::event::Key;
 
+#[derive(Copy, Clone)]
 pub enum Year {
     Y0000,
     Y2015,
