@@ -1,8 +1,16 @@
 use super::{Movement, TermionFrame};
 use crate::config::Year;
-use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, List, ListItem, ListState};
+use crate::text::welcome::WELCOME_MESSAGE as wm;
+use tui::{
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Modifier, Style},
+    text::Span,
+    widgets::Wrap,
+};
+use tui::{
+    text::Spans,
+    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
+};
 
 pub(super) struct Welcome {
     years: Vec<Year>,
@@ -21,25 +29,55 @@ impl Default for Welcome {
 impl Welcome {
     pub(super) fn draw(&mut self, f: &mut TermionFrame) {
         let chunks = Layout::default()
-            .vertical_margin(5)
-            .horizontal_margin(10)
-            .constraints([Constraint::Min(10)].as_ref())
+            // .margin(2)
+            .constraints(
+                [
+                    Constraint::Percentage(1),
+                    Constraint::Percentage(98),
+                    Constraint::Percentage(1),
+                ]
+                .as_ref(),
+            )
             .split(f.size());
+
+        let chunks = Layout::default()
+            .margin(2)
+            .direction(Direction::Horizontal)
+            .constraints(
+                [
+                    Constraint::Percentage(1),
+                    Constraint::Percentage(98),
+                    Constraint::Percentage(1),
+                ]
+                .as_ref(),
+            )
+            .split(chunks[1]);
         let block = Block::default().borders(Borders::ALL);
 
-        f.render_widget(block, chunks[0]);
+        f.render_widget(block, chunks[1]);
         let chunks = Layout::default()
             .margin(1)
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-            .split(chunks[0]);
+            .constraints([Constraint::Percentage(80), Constraint::Percentage(20)].as_ref())
+            .split(chunks[1]);
         let block = Block::default();
-        f.render_widget(block, chunks[0]);
+        let text = {
+            let mut v = Vec::new();
+            for t in wm.iter() {
+                v.push(Span::styled(t.0, t.1));
+            }
+            Spans::from(v)
+        };
+        let paragraph = Paragraph::new(text)
+            .block(block)
+            .alignment(tui::layout::Alignment::Left)
+            .wrap(Wrap { trim: false });
+
+        f.render_widget(paragraph, chunks[0]);
         let block = Block::default().borders(Borders::LEFT);
         f.render_widget(block, chunks[1]);
         let chunks = Layout::default()
-            .vertical_margin(11)
-            .horizontal_margin(25)
+            .margin(2)
             .constraints([Constraint::Min(8)].as_ref())
             .split(chunks[1]);
         let items: Vec<ListItem> = self

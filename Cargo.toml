@@ -9,4 +9,5 @@ edition = "2018"
 [dependencies]
 tui = { version = "0.14", default-features = false, features = ['termion'] }
 termion = "1.5"
+lazy_static = "1.4.0"
 
