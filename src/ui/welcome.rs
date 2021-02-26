@@ -56,7 +56,8 @@ impl Welcome {
 
         f.render_widget(block, chunks[1]);
         let chunks = Layout::default()
-            .margin(1)
+            .vertical_margin(1)
+            .horizontal_margin(3)
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(80), Constraint::Percentage(20)].as_ref())
             .split(chunks[1]);
