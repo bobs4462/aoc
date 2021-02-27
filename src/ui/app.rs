@@ -1,60 +1,79 @@
-use crate::config::Config;
+use tui::layout::Rect;
 
-use super::{puzzles::Puzzles, TermionFrame};
-use super::{welcome::Welcome, Movement};
+use crate::challenge::Challenge;
+
+use super::{Movement, TermionFrame};
 
 pub struct App {
-    welcome: Welcome,
-    puzzles: Puzzles,
-    current_state: AppState,
-    pub config: Config,
+    state: AppState,
+    challenge: Challenge,
 }
 
 enum AppState {
-    WelcomeScreen,
-    PuzzlesScreen,
+    SelectingYear,
+    SelectingDay,
+    SelectingPart,
+    SelectingFile,
+    Solving,
 }
 
 impl Default for App {
     fn default() -> Self {
         App {
-            welcome: Welcome::default(),
-            puzzles: Puzzles::default(),
-            current_state: AppState::WelcomeScreen,
-            config: Config::default(),
+            state: AppState::SelectingYear,
+            challenge: Challenge::default(),
         }
     }
 }
 
 impl App {
     pub fn draw(&mut self, f: &mut TermionFrame) {
-        match self.current_state {
-            AppState::WelcomeScreen => self.welcome.draw(f),
-            AppState::PuzzlesScreen => self.puzzles.draw(f),
+        let mut chunks: Vec<Rect>;
+        match self.state {
+            AppState::SelectingYear => {}
+            AppState::SelectingDay => {}
+            AppState::SelectingPart => {}
+            AppState::SelectingFile => {}
+            AppState::Solving => {}
         }
     }
 
-    pub fn move_selected(&mut self, movement: Movement) {
-        match self.current_state {
-            AppState::WelcomeScreen => self.welcome.move_selected(movement),
-            AppState::PuzzlesScreen => self.puzzles.move_selected(movement),
+    fn build_layout(&self, area: Rect) {}
+
+    pub fn select(&mut self, movement: Movement) {
+        match self.state {
+            AppState::SelectingYear => {}
+            AppState::SelectingDay => {}
+            AppState::SelectingPart => {}
+            AppState::SelectingFile => {}
+            AppState::Solving => {}
         }
     }
 
-    pub fn pick(&mut self) {
-        match self.current_state {
-            AppState::WelcomeScreen => {
-                self.config.year = self.welcome.pick();
-                self.current_state = AppState::PuzzlesScreen;
+    pub fn confirm(&mut self) {
+        match self.state {
+            AppState::SelectingYear => {}
+            AppState::SelectingDay => {}
+            AppState::SelectingPart => {}
+            AppState::SelectingFile => {}
+            AppState::Solving => {}
+        }
+    }
+
+    pub fn back(&mut self) {
+        match self.state {
+            AppState::SelectingYear => {}
+            AppState::SelectingDay => {
+                self.state = AppState::SelectingYear;
             }
-            AppState::PuzzlesScreen => {
-                let (day, part) = self.puzzles.pick();
-                if day != 0 {
-                    self.config.challenge = day;
-                }
-                if part != 0 {
-                    self.config.part = part;
-                }
+            AppState::SelectingPart => {
+                self.state = AppState::SelectingDay;
+            }
+            AppState::SelectingFile => {
+                self.state = AppState::SelectingPart;
+            }
+            AppState::Solving => {
+                self.state = AppState::SelectingFile;
             }
         }
     }
