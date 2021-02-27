@@ -1,7 +1,8 @@
+use crate::text::challenge1::challenge1_pans_get;
 use tui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
-    widgets::{Block, Borders, List, ListItem, ListState},
+    widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap},
 };
 
 use super::{Movement, TermionFrame};
@@ -64,26 +65,6 @@ impl Puzzles {
         f.render_widget(block.clone(), chunks[1]);
         f.render_widget(block.clone().borders(Borders::BOTTOM), parts_chunk[0]);
         f.render_widget(block.clone(), chunks[2]);
-        // let chunks = Layout::default()
-        // .vertical_margin(1)
-        // .horizontal_margin(3)
-        // .direction(Direction::Horizontal)
-        // .constraints([Constraint::Percentage(80), Constraint::Percentage(20)].as_ref())
-        // .split(chunks[1]);
-        // let block = Block::default();
-        // let text = welcome_spans_get();
-        // let paragraph = Paragraph::new(text)
-        // .block(block)
-        // .alignment(tui::layout::Alignment::Left)
-        // .wrap(Wrap { trim: false });
-        //
-        // f.render_widget(paragraph, chunks[0]);
-        // let block = Block::default().borders(Borders::LEFT);
-        // f.render_widget(block, chunks[1]);
-        // let chunks = Layout::default()
-        // .margin(2)
-        // .constraints([Constraint::Min(8)].as_ref())
-        // .split(chunks[1]);
         let items: Vec<ListItem> = (1..=self.days)
             .map(|d| ListItem::new(format!("Day {}", d)))
             .collect();
@@ -102,6 +83,12 @@ impl Puzzles {
             .highlight_style(Style::default().add_modifier(Modifier::BOLD))
             .highlight_symbol("⇥ ");
         f.render_stateful_widget(list, parts_chunk[1], &mut self.parts_state);
+        let text = challenge1_pans_get();
+        let paragraph = Paragraph::new(text)
+            .alignment(tui::layout::Alignment::Left)
+            .block(block.clone())
+            .wrap(Wrap { trim: false });
+        f.render_widget(paragraph, chunks[2]);
     }
     pub(super) fn move_selected(&mut self, movement: Movement) {
         match movement {
