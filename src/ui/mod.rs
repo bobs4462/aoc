@@ -13,4 +13,6 @@ type TermionFrame<'a> = Frame<'a, TermionBackend<AlternateScreen<RawTerminal<Std
 pub enum Movement {
     Up = -1,
     Down = 1,
+    Left,
+    Right,
 }

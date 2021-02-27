@@ -20,19 +20,20 @@ fn main() -> io::Result<()> {
                 aoc::event::Event::KeyPress(k) => match k {
                     Key::Char('j') | Key::Down => app.move_selected(aoc::ui::Movement::Down),
                     Key::Char('k') | Key::Up => app.move_selected(aoc::ui::Movement::Up),
+                    Key::Char('l') | Key::Right => app.move_selected(aoc::ui::Movement::Right),
+                    Key::Char('h') | Key::Left => app.move_selected(aoc::ui::Movement::Left),
                     Key::Char('\n') => app.pick(),
 
-                    k if (k == app.config.quit_key) => break,
+                    k if (k == app.config.quit_key) => {
+                        break;
+                    }
                     _ => {}
                 },
             }
         }
-        if !matches!(app.config.year, aoc::config::Year::Y0000) {
-            break;
-        }
     }
     drop(terminal);
-    print!("{}", app.config.year);
+    print!("{}", app.config);
 
     Ok(())
 }

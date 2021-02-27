@@ -85,10 +85,15 @@ impl Welcome {
     }
 
     pub(super) fn move_selected(&mut self, movement: Movement) {
-        let index = self.state.selected().expect("List item should be selected");
-        let index = (index as isize + movement as isize + self.years.len() as isize)
-            % self.years.len() as isize;
-        self.state.select(Some(index as usize));
+        match movement {
+            Movement::Up | Movement::Down => {
+                let index = self.state.selected().expect("List item should be selected");
+                let index = (index as isize + movement as isize + self.years.len() as isize)
+                    % self.years.len() as isize;
+                self.state.select(Some(index as usize));
+            }
+            _ => {}
+        }
     }
 
     pub(super) fn pick(&self) -> Year {
