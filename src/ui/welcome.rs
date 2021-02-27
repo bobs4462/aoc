@@ -1,15 +1,11 @@
 use super::{Movement, TermionFrame};
 use crate::config::Year;
-use crate::text::welcome::WELCOME_MESSAGE as wm;
+use crate::text::welcome::welcome_spans_get;
+use tui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph};
 use tui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
-    text::Span,
     widgets::Wrap,
-};
-use tui::{
-    text::Spans,
-    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
 };
 
 pub(super) struct Welcome {
@@ -32,9 +28,9 @@ impl Welcome {
             // .margin(2)
             .constraints(
                 [
-                    Constraint::Percentage(1),
-                    Constraint::Percentage(98),
-                    Constraint::Percentage(1),
+                    Constraint::Percentage(10),
+                    Constraint::Percentage(80),
+                    Constraint::Percentage(10),
                 ]
                 .as_ref(),
             )
@@ -45,9 +41,9 @@ impl Welcome {
             .direction(Direction::Horizontal)
             .constraints(
                 [
-                    Constraint::Percentage(1),
-                    Constraint::Percentage(98),
-                    Constraint::Percentage(1),
+                    Constraint::Percentage(15),
+                    Constraint::Percentage(70),
+                    Constraint::Percentage(15),
                 ]
                 .as_ref(),
             )
@@ -62,13 +58,7 @@ impl Welcome {
             .constraints([Constraint::Percentage(80), Constraint::Percentage(20)].as_ref())
             .split(chunks[1]);
         let block = Block::default();
-        let text = {
-            let mut v = Vec::new();
-            for t in wm.iter() {
-                v.push(Span::styled(t.0, t.1));
-            }
-            Spans::from(v)
-        };
+        let text = welcome_spans_get();
         let paragraph = Paragraph::new(text)
             .block(block)
             .alignment(tui::layout::Alignment::Left)

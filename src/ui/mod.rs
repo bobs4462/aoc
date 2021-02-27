@@ -5,6 +5,7 @@ use tui::backend::TermionBackend;
 use tui::Frame;
 
 pub mod app;
+mod puzzles;
 mod welcome;
 
 type TermionFrame<'a> = Frame<'a, TermionBackend<AlternateScreen<RawTerminal<Stdout>>>>;
