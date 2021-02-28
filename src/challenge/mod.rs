@@ -34,7 +34,7 @@ impl Challenge {
     pub fn parts() -> Vec<usize> {
         (1..3).collect()
     }
-    pub fn reselt(&mut self) {
+    pub fn reset(&mut self) {
         self.year = None;
         self.day = None;
         self.part = None;
