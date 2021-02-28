@@ -16,6 +16,7 @@ pub struct App {
     year_state: ListState,
     day_state: ListState,
     part_state: ListState,
+    file_state: ListState,
     path: String,
 }
 
@@ -33,12 +34,17 @@ impl Default for App {
         let mut year_state = ListState::default();
         year_state.select(Some(0));
         App {
-            state: AppState::SelectingFile,
+            state: AppState::SelectingYear,
             challenge: Challenge::default(),
             year_state,
             day_state: ListState::default(),
             part_state: ListState::default(),
-            path: String::from("."),
+            file_state: ListState::default(),
+            path: std::env::current_dir()
+                .unwrap()
+                .into_os_string()
+                .into_string()
+                .unwrap(),
         }
     }
 }
@@ -46,18 +52,30 @@ impl Default for App {
 impl App {
     pub fn draw(&mut self, f: &mut TermionFrame) {
         let chunks = self.build_layout(f.size());
-        self.render_list(f, chunks[1], Challenge::years().iter());
+        Self::render_list(
+            f,
+            chunks[1],
+            Challenge::years().iter(),
+            &mut self.year_state,
+        );
         if self.state > AppState::SelectingYear {
-            self.render_list(f, chunks[2], Challenge::days().iter());
+            Self::render_list(f, chunks[2], Challenge::days().iter(), &mut self.day_state);
         }
         if self.state > AppState::SelectingDay {
-            self.render_list(f, chunks[3], Challenge::parts().iter());
+            Self::render_list(
+                f,
+                chunks[3],
+                Challenge::parts().iter(),
+                &mut self.part_state,
+            );
         }
         if self.state > AppState::SelectingPart {
             let entries = read_dir(&self.path).unwrap();
             let entry_strings = entries
                 .map(|e| e.map_or(String::from(""), |e| e.file_name().into_string().unwrap()));
-            self.render_list(f, chunks[0], entry_strings)
+            let iter = vec![String::from("..")];
+            let entry_strings = iter.into_iter().chain(entry_strings);
+            Self::render_list(f, chunks[0], entry_strings, &mut self.file_state)
         }
     }
 
@@ -103,7 +121,7 @@ impl App {
         chunks
     }
 
-    fn render_list<I, D>(&mut self, f: &mut TermionFrame, area: Rect, iterable: I)
+    fn render_list<I, D>(f: &mut TermionFrame, area: Rect, iterable: I, state: &mut ListState)
     where
         I: Iterator<Item = D>,
         D: std::fmt::Display,
@@ -113,25 +131,89 @@ impl App {
             .block(Block::default().borders(Borders::ALL))
             .highlight_style(Style::default().add_modifier(Modifier::BOLD))
             .highlight_symbol("✓");
-        f.render_stateful_widget(items, area, &mut self.year_state)
+        f.render_stateful_widget(items, area, state);
     }
 
     pub fn select(&mut self, movement: Movement) {
         match self.state {
-            AppState::SelectingYear => {}
-            AppState::SelectingDay => {}
-            AppState::SelectingPart => {}
-            AppState::SelectingFile => {}
+            AppState::SelectingYear => {
+                let i = self.year_state.selected().expect("Year was not selected");
+                let years = Challenge::years().len() as isize;
+                let i = (i as isize + movement as isize + years) % years;
+                // print!("SELECTING YEAR {}", i);
+                self.year_state.select(Some(i as usize));
+            }
+            AppState::SelectingDay => {
+                let i = self.day_state.selected().expect("Day was not selected");
+                let days = Challenge::days().len() as isize;
+                let i = (i as isize + movement as isize + days) % days;
+                // print!("SELECTING day {}", i);
+                self.day_state.select(Some(i as usize));
+            }
+            AppState::SelectingPart => {
+                let i = self.part_state.selected().expect("Part was not selected");
+                let parts = Challenge::parts().len() as isize;
+                let i = (i as isize + movement as isize + parts) % parts;
+                // print!("SELECTING part {}", i);
+                self.part_state.select(Some(i as usize));
+            }
+            AppState::SelectingFile => {
+                let i = self.file_state.selected().expect("File was not selected");
+                let files = read_dir(&self.path)
+                    .expect("Coudn't read directory")
+                    .count() as isize
+                    + 1;
+                let i = (i as isize + movement as isize + files) % files;
+                // print!("SELECTING file {}", i);
+                self.file_state.select(Some(i as usize));
+            }
             AppState::Solving => {}
         }
     }
 
     pub fn confirm(&mut self) {
         match self.state {
-            AppState::SelectingYear => {}
-            AppState::SelectingDay => {}
-            AppState::SelectingPart => {}
-            AppState::SelectingFile => {}
+            AppState::SelectingYear => {
+                self.state = AppState::SelectingDay;
+                self.day_state.select(Some(0));
+            }
+            AppState::SelectingDay => {
+                self.state = AppState::SelectingPart;
+                self.part_state.select(Some(0));
+            }
+            AppState::SelectingPart => {
+                self.state = AppState::SelectingFile;
+                self.file_state.select(Some(0));
+            }
+            AppState::SelectingFile => {
+                let i = self.file_state.selected().expect("File was not selected");
+
+                if i == 0 {
+                    self.path = Path::new(&self.path)
+                        .parent()
+                        .unwrap()
+                        .to_string_lossy()
+                        .to_string();
+                } else if read_dir(&self.path)
+                    .unwrap()
+                    .nth(i - 1)
+                    .unwrap()
+                    .unwrap()
+                    .path()
+                    .is_dir()
+                {
+                    self.path = read_dir(&self.path)
+                        .unwrap()
+                        .nth(i - 1)
+                        .unwrap()
+                        .unwrap()
+                        .path()
+                        .to_string_lossy()
+                        .to_string();
+                } else {
+                    self.state = AppState::Solving;
+                }
+            }
             AppState::Solving => {}
         }
     }

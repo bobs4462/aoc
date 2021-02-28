@@ -6,6 +6,7 @@ use std::{
 #[derive(Copy, Clone)]
 pub enum Year {
     Y2015 = 2015,
+    Y2016,
 }
 
 pub struct Challenge {
@@ -19,6 +20,7 @@ impl Display for Year {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let str_repr = match self {
             Year::Y2015 => "Year 2015",
+            Year::Y2016 => "Year 2016",
         };
         write!(f, "{}", str_repr)
     }
@@ -26,7 +28,7 @@ impl Display for Year {
 
 impl Challenge {
     pub fn years() -> Vec<Year> {
-        vec![Year::Y2015]
+        vec![Year::Y2015, Year::Y2016]
     }
     pub fn days() -> Vec<usize> {
         (1..26).collect()
