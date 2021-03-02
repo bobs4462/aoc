@@ -10,10 +10,10 @@ pub enum Year {
 }
 
 pub struct Challenge {
-    year: Option<Year>,
-    day: Option<usize>,
-    part: Option<usize>,
-    file: Option<File>,
+    pub year: Option<Year>,
+    pub day: Option<usize>,
+    pub part: Option<usize>,
+    pub file: Option<File>,
 }
 
 impl Display for Year {
@@ -59,10 +59,11 @@ impl Display for Challenge {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Year: {}. Day: {}. Part: {}.",
+            "Year: {}. Day: {}. Part: {}. File: {:?}",
             self.year.unwrap(),
             self.day.unwrap(),
-            self.part.unwrap()
+            self.part.unwrap(),
+            self.file.as_ref().unwrap(),
         )
     }
 }

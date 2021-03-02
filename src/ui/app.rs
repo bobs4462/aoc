@@ -1,4 +1,7 @@
-use std::{fs::read_dir, path::Path};
+use std::{
+    fs::{read_dir, File},
+    path::Path,
+};
 
 use tui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -12,7 +15,7 @@ use super::{Movement, TermionFrame};
 
 pub struct App {
     state: AppState,
-    challenge: Challenge,
+    pub challenge: Challenge,
     year_state: ListState,
     day_state: ListState,
     part_state: ListState,
@@ -211,6 +214,22 @@ impl App {
                         .to_string_lossy()
                         .to_string();
                 } else {
+                    let year = Challenge::years()[self.year_state.selected().unwrap()];
+                    let day = Challenge::days()[self.day_state.selected().unwrap()];
+                    let part = Challenge::days()[self.part_state.selected().unwrap()];
+                    let file = self.file_state.selected().unwrap();
+                    let path = read_dir(&self.path)
+                        .unwrap()
+                        .nth(file - 1)
+                        .unwrap()
+                        .unwrap()
+                        .path()
+                        .to_string_lossy()
+                        .to_string();
+                    self.challenge.year = Some(year);
+                    self.challenge.day = Some(day);
+                    self.challenge.part = Some(part);
+                    self.challenge.file = Some(File::open(path).expect("FILE COULD NOT BE OPENED"));
                     self.state = AppState::Solving;
                 }
             }
@@ -234,5 +253,12 @@ impl App {
                 self.state = AppState::SelectingFile;
             }
         }
+    }
+
+    pub fn all_set(&self) -> bool {
+        if let Some(_) = self.challenge.file {
+            return true;
+        }
+        false
     }
 }

@@ -20,6 +20,7 @@ fn main() -> io::Result<()> {
                     Key::Char('j') | Key::Down => app.select(aoc::ui::Movement::Down),
                     Key::Char('k') | Key::Up => app.select(aoc::ui::Movement::Up),
                     Key::Char('\n') => app.confirm(),
+                    Key::Esc | Key::Backspace => app.back(),
 
                     k if (k == Key::Char('q')) => {
                         break;
@@ -28,8 +29,12 @@ fn main() -> io::Result<()> {
                 },
             }
         }
+        if app.all_set() {
+            break;
+        }
     }
     drop(terminal);
+    print!("{}", app.challenge);
 
     Ok(())
 }
