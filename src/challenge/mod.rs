@@ -1,69 +1,35 @@
-use std::{
-    fmt::{Display, Formatter},
-    fs::File,
-};
+use super::solver::Solver;
+use std::fmt::{Display, Formatter};
 
-#[derive(Copy, Clone)]
-pub enum Year {
-    Y2015 = 2015,
-    Y2016,
+pub struct Year {
+    val: usize,
+    days: Vec<Day>,
 }
 
-pub struct Challenge {
-    pub year: Option<Year>,
-    pub day: Option<usize>,
-    pub part: Option<usize>,
-    pub file: Option<File>,
+pub struct Day {
+    val: u8,
+    solver: Box<dyn Solver>,
 }
 
 impl Display for Year {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let str_repr = match self {
-            Year::Y2015 => "Year 2015",
-            Year::Y2016 => "Year 2016",
-        };
-        write!(f, "{}", str_repr)
+        write!(f, "Year: {}", self.val)
     }
 }
-
-impl Challenge {
-    pub fn years() -> Vec<Year> {
-        vec![Year::Y2015, Year::Y2016]
-    }
-    pub fn days() -> Vec<usize> {
-        (1..26).collect()
-    }
-    pub fn parts() -> Vec<usize> {
-        (1..3).collect()
-    }
-    pub fn reset(&mut self) {
-        self.year = None;
-        self.day = None;
-        self.part = None;
-        self.file = None;
-    }
-}
-
-impl Default for Challenge {
-    fn default() -> Self {
-        Challenge {
-            year: None,
-            day: None,
-            part: None,
-            file: None,
-        }
-    }
-}
-
-impl Display for Challenge {
+impl Display for Day {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Year: {}. Day: {}. Part: {}. File: {:?}",
-            self.year.unwrap(),
-            self.day.unwrap(),
-            self.part.unwrap(),
-            self.file.as_ref().unwrap(),
-        )
+        write!(f, "Day: {}", self.val)
+    }
+}
+
+impl Year {
+    pub fn new(val: usize, days: Vec<Day>) -> Self {
+        Year { val, days }
+    }
+}
+
+impl Day {
+    pub fn new(val: u8, solver: Box<dyn Solver>) -> Self {
+        Day { val, solver }
     }
 }
