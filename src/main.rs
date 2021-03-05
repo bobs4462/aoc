@@ -1,4 +1,8 @@
-use aoc::{event::EventProvider, ui::app::App};
+use aoc::{
+    app::{App, Movement},
+    event::EventProvider,
+    ui,
+};
 use std::io;
 use termion::{event::Key, raw::IntoRawMode, screen::AlternateScreen};
 
@@ -12,16 +16,15 @@ fn main() -> io::Result<()> {
     let mut app = App::default();
     let events = EventProvider::new();
     loop {
-        terminal.draw(|f| app.draw(f))?;
+        terminal.draw(|f| ui::draw(&mut app, f))?;
         if let Ok(v) = events.next() {
             match v {
                 aoc::event::Event::Tick => {}
                 aoc::event::Event::KeyPress(k) => match k {
-                    Key::Char('j') | Key::Down => app.select(aoc::ui::Movement::Down),
-                    Key::Char('k') | Key::Up => app.select(aoc::ui::Movement::Up),
+                    Key::Char('j') | Key::Down => app.vmove(Movement::Down),
+                    Key::Char('k') | Key::Up => app.vmove(Movement::Up),
                     Key::Char('\n') => app.confirm(),
-                    Key::Esc | Key::Backspace => app.back(),
-
+                    // Key::Esc | Key::Backspace => app.back(),
                     k if (k == Key::Char('q')) => {
                         break;
                     }
@@ -29,12 +32,12 @@ fn main() -> io::Result<()> {
                 },
             }
         }
-        if app.all_set() {
-            break;
-        }
+        // if app.all_set() {
+        // break;
+        // }
     }
     drop(terminal);
-    print!("{}", app.challenge);
+    print!("{}", app);
 
     Ok(())
 }
