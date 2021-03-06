@@ -5,7 +5,7 @@ use tui::{
     backend::TermionBackend,
     layout::{Constraint, Direction, Rect},
     style::{Modifier, Style},
-    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
+    widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap},
 };
 
 use tui::{layout::Layout, Frame};
@@ -49,8 +49,9 @@ pub fn draw(app: &mut App, f: &mut TermionFrame) {
             f.render_widget(p, chunks[0]);
         }
         AppState::Solved(ref solution) => {
-            let p = Paragraph::new(format!("Your solution is: {}", solution))
-                .block(Block::default().borders(Borders::ALL));
+            let p = Paragraph::new(format!("Your solution is:\n{}", solution))
+                .block(Block::default().borders(Borders::ALL))
+                .wrap(Wrap { trim: false });
             f.render_widget(p, chunks[0]);
         }
         AppState::SolveError(ref e) => {
