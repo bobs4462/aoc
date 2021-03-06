@@ -32,9 +32,9 @@ fn main() -> io::Result<()> {
                 },
             }
         }
-        // if app.all_set() {
-        // break;
-        // }
+        if app.is_ready() {
+            app.solve();
+        }
     }
     drop(terminal);
     print!("{}", app);

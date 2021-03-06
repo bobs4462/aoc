@@ -5,7 +5,7 @@ use tui::{
     backend::TermionBackend,
     layout::{Constraint, Direction, Rect},
     style::{Modifier, Style},
-    widgets::{Block, Borders, List, ListItem, ListState},
+    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
 };
 
 use tui::{layout::Layout, Frame};
@@ -43,7 +43,21 @@ pub fn draw(app: &mut App, f: &mut TermionFrame) {
             list_state.select(Some(app.part as usize));
             render_list(f, chunks[0], [1, 2].iter(), list_state);
         }
-        AppState::Solving => {}
+        AppState::ReadToSolve => {
+            let p = Paragraph::new(format!("Solving: {}", app))
+                .block(Block::default().borders(Borders::ALL));
+            f.render_widget(p, chunks[0]);
+        }
+        AppState::Solved(ref solution) => {
+            let p = Paragraph::new(format!("Your solution is: {}", solution))
+                .block(Block::default().borders(Borders::ALL));
+            f.render_widget(p, chunks[0]);
+        }
+        AppState::SolveError(ref e) => {
+            let p = Paragraph::new(format!("Error occured while solving:\n{}", e))
+                .block(Block::default().borders(Borders::ALL));
+            f.render_widget(p, chunks[0]);
+        }
     }
     selections.push(YEARS[app.year as usize].to_string());
     if app.state > AppState::SelectingYear {

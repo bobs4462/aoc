@@ -1,8 +1,3 @@
-pub enum Movement {
-    Up = -1,
-    Down = 1,
-}
-
 use std::{
     fmt::{Display, Formatter},
     fs::{read_dir, File},
@@ -13,6 +8,11 @@ use crate::{
     solver::{Part, SolveError},
     statics::YEARS,
 };
+
+pub enum Movement {
+    Up = -1,
+    Down = 1,
+}
 
 pub struct App {
     pub(crate) state: AppState,
@@ -29,7 +29,9 @@ pub enum AppState {
     SelectingDay,
     SelectingFile,
     SelectingPart,
-    Solving,
+    ReadToSolve,
+    Solved(String),
+    SolveError(SolveError),
 }
 
 impl Default for App {
@@ -84,7 +86,7 @@ impl App {
             AppState::SelectingPart => {
                 self.part = (self.part + 1) % 2;
             }
-            AppState::Solving => {}
+            _ => {}
         }
     }
 
@@ -97,7 +99,7 @@ impl App {
                 self.state = AppState::SelectingFile;
             }
             AppState::SelectingPart => {
-                self.state = AppState::Solving;
+                self.state = AppState::ReadToSolve;
             }
             AppState::SelectingFile => {
                 if self.dir_entry == 0 {
@@ -125,17 +127,30 @@ impl App {
                     .path();
                 self.dir_entry = 0;
             }
-            AppState::Solving => {}
+            _ => {}
         }
     }
 
-    pub fn solve(&self, part: Part) -> Result<String, SolveError> {
+    pub fn is_ready(&self) -> bool {
+        if let AppState::ReadToSolve = self.state {
+            return true;
+        }
+        false
+    }
+
+    pub fn solve(&mut self) {
         let solver = YEARS[self.year as usize].day(self.day as usize).solver();
         let file = File::open(&self.path).expect("Coudn't read the supplied file");
-        solver.solve(file, part)
+        match solver.solve(file, Part::from(self.part)) {
+            Ok(sltn) => self.state = AppState::Solved(sltn),
+            Err(e) => self.state = AppState::SolveError(e),
+        }
     }
 
     pub fn dir_entries(&self) -> Vec<String> {
+        if self.path.is_file() {
+            return vec![self.path.file_name().unwrap().to_string_lossy().to_string()];
+        }
         let mut entries = vec![String::from("..")];
         entries.append(
             &mut read_dir(&self.path)
