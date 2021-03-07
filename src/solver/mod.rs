@@ -44,6 +44,7 @@ pub trait Solver: Sync {
     fn solve_part_two(&self, data: Vec<u8>) -> String;
     fn solve(&self, mut f: File, part: Part) -> Result<String, SolveError> {
         let mut buf = Vec::with_capacity(1000);
+        const NWLN: u8 = 0xA;
         match f.read_to_end(&mut buf) {
             Ok(_) => {}
             Err(e) => {
@@ -53,6 +54,15 @@ pub trait Solver: Sync {
                 })
             }
         };
+        loop {
+            if let Some(&b) = buf.last() {
+                if b == NWLN {
+                    buf.pop();
+                } else {
+                    break;
+                }
+            }
+        }
         if let Err(dscrpt) = self.validate(buf.as_slice()) {
             return Err(SolveError {
                 etype: SolveErrorType::ValidationError,
