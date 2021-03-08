@@ -3,14 +3,12 @@ use crate::solver::Solver;
 pub(crate) struct D1;
 
 impl Solver for D1 {
+    /// The input consists only of left and right parentheses, so the validation is done to ensure
+    /// that there're no other chars except for those two
     fn validate(&self, input: &[u8]) -> Result<(), String> {
         const LPAREN: u8 = 0x28;
         const RPAREN: u8 = 0x29;
-        const NWLINE: u8 = 0xA;
         for (i, &b) in input.iter().enumerate() {
-            if b == NWLINE {
-                break;
-            }
             if b != LPAREN && b != RPAREN {
                 return Err(format!(
                     "INVALID CHAR: '{}'\nAT POSISTION: {}",
@@ -21,6 +19,7 @@ impl Solver for D1 {
         }
         Ok(())
     }
+    /// Left parenthesis is an increment operation, and right one is decrement
     fn solve_part_one(&self, data: Vec<u8>) -> String {
         const LPAREN: u8 = 0x28;
         const RPAREN: u8 = 0x29;
@@ -35,6 +34,8 @@ impl Solver for D1 {
         }
         format!("THE FINAL SANTA'S POSITION IS AT: {}", position)
     }
+    /// There's only need to track the index of the current instruction, and once the absolute
+    /// position becomes -1, just return the index
     fn solve_part_two(&self, data: Vec<u8>) -> String {
         const LPAREN: u8 = 0x28;
         const RPAREN: u8 = 0x29;
