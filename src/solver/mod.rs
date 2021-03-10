@@ -38,10 +38,27 @@ impl Display for SolveError {
 
 impl Error for SolveError {}
 
+pub struct Solution {
+    message: &'static str,
+    value: String,
+}
+
+impl Solution {
+    pub fn new(message: &'static str, value: String) -> Self {
+        Solution { message, value }
+    }
+}
+
+impl Display for Solution {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}\n{}", self.message, self.value)
+    }
+}
+
 pub trait Solver: Sync {
     fn validate(&self, input: &[u8]) -> Result<(), String>;
-    fn solve_part_one(&self, data: Vec<u8>) -> String;
-    fn solve_part_two(&self, data: Vec<u8>) -> String;
+    fn solve_part_one(&self, data: Vec<u8>) -> Solution;
+    fn solve_part_two(&self, data: Vec<u8>) -> Solution;
     fn solve(&self, mut f: File, part: Part) -> Result<String, SolveError> {
         let mut buf = Vec::with_capacity(1000);
         const NWLN: u8 = 0xA;
@@ -73,7 +90,7 @@ pub trait Solver: Sync {
             Part::One => self.solve_part_one(buf),
             Part::Two => self.solve_part_two(buf),
         };
-        Ok(solution)
+        Ok(solution.to_string())
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::solver::Solver;
+use crate::solver::{Solution, Solver};
 use std::io::BufRead;
 
 pub(crate) struct D2;
@@ -41,7 +41,7 @@ impl Solver for D2 {
         Ok(())
     }
     /// Get dimensions, stick them into a fomula, sum up the results for every line
-    fn solve_part_one(&self, data: Vec<u8>) -> String {
+    fn solve_part_one(&self, data: Vec<u8>) -> Solution {
         let mut total: usize = 0;
         for line in data.lines() {
             let ln = line.expect("Coudn't read a line in data set");
@@ -49,13 +49,13 @@ impl Solver for D2 {
             let [a, b, c] = self.dims(ln);
             total += (a * b + b * c + a * c) * 2 + (a * b).min(a * c).min(b * c)
         }
-        format!(
-            "The total amount of wrapping paper is:\n{} square feet",
-            total
+        Solution::new(
+            "The total amount of wrapping paper is (square feet):",
+            total.to_string(),
         )
     }
     /// The min perimeter can be obtained by taking two first min sides
-    fn solve_part_two(&self, data: Vec<u8>) -> String {
+    fn solve_part_two(&self, data: Vec<u8>) -> Solution {
         let mut total: usize = 0;
         for line in data.lines() {
             let ln = line.expect("Coudn't read a line in data set");
@@ -66,7 +66,7 @@ impl Solver for D2 {
             // a + b is the sum of two min elements
             total += (a + b) * 2 + a * b * c;
         }
-        format!("The total length of ribbon is:\n{} feet", total)
+        Solution::new("The total length of ribbon is (feet):", total.to_string())
     }
 }
 
@@ -99,10 +99,7 @@ mod tests {
 "#;
         let solver = super::D2 {};
         let res = solver.solve_part_one(DATA.as_bytes().to_vec());
-        assert_eq!(
-            res,
-            String::from("The total amount of wrapping paper is:\n101 square feet",)
-        );
+        assert_eq!(res.value, "101");
     }
     #[test]
     fn test_part_two() {
@@ -112,6 +109,6 @@ mod tests {
 "#;
         let solver = super::D2 {};
         let res = solver.solve_part_two(DATA.as_bytes().to_vec());
-        assert_eq!(res, String::from("The total length of ribbon is:\n48 feet"));
+        assert_eq!(res.value, "48");
     }
 }

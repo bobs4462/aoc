@@ -1,4 +1,4 @@
-use crate::solver::Solver;
+use crate::solver::{Solution, Solver};
 
 pub(crate) struct D1;
 
@@ -20,7 +20,7 @@ impl Solver for D1 {
         Ok(())
     }
     /// Left parenthesis is an increment operation, and right one is decrement
-    fn solve_part_one(&self, data: Vec<u8>) -> String {
+    fn solve_part_one(&self, data: Vec<u8>) -> Solution {
         const LPAREN: u8 = 0x28;
         const RPAREN: u8 = 0x29;
 
@@ -32,11 +32,11 @@ impl Solver for D1 {
                 _ => break,
             }
         }
-        format!("THE FINAL SANTA'S POSITION IS AT: {}", position)
+        Solution::new("THE FINAL SANTA'S POSITION IS AT:", position.to_string())
     }
     /// There's only need to track the index of the current instruction, and once the absolute
     /// position becomes -1, just return the index
-    fn solve_part_two(&self, data: Vec<u8>) -> String {
+    fn solve_part_two(&self, data: Vec<u8>) -> Solution {
         const LPAREN: u8 = 0x28;
         const RPAREN: u8 = 0x29;
 
@@ -53,9 +53,9 @@ impl Solver for D1 {
                 break;
             }
         }
-        format!(
+        Solution::new(
             "THE INSTRUCTION NUMBER TO GET SANTA BELOW GROUND IS:\n{}",
-            below_ground
+            below_ground.to_string(),
         )
     }
 }
@@ -68,7 +68,7 @@ mod tests {
         let test_data = String::from("()()()))").into_bytes();
         let solver = super::D1 {};
         let res = solver.solve_part_one(test_data);
-        assert_eq!(res, String::from("THE FINAL SANTA'S POSITION IS AT: -2"));
+        assert_eq!(res.value, "-2");
     }
     #[test]
     fn test_part_two() {
@@ -76,9 +76,6 @@ mod tests {
         let test_data = String::from("()()()))").into_bytes();
         let solver = super::D1 {};
         let res = solver.solve_part_two(test_data);
-        assert_eq!(
-            res,
-            String::from("THE INSTRUCTION NUMBER TO GET SANTA BELOW GROUND IS:\n7")
-        );
+        assert_eq!(res.value, "7");
     }
 }
