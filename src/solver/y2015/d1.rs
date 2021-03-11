@@ -1,3 +1,4 @@
+/// --- Day 1: Not Quite Lisp ---
 use crate::solver::{Solution, Solver};
 
 pub(crate) struct D1;

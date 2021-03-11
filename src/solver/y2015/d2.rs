@@ -1,3 +1,4 @@
+/// --- Day 2: I Was Told There Would Be No Math ---
 use crate::solver::{Solution, Solver};
 use std::io::BufRead;
 
