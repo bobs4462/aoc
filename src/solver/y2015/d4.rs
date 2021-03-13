@@ -1,5 +1,3 @@
-use std::{convert::TryInto, intrinsics::transmute};
-
 /// --- Day 4: The Ideal Stocking Stuffer ---
 // use crate::solver::{Solution, Solver};
 //
@@ -7,7 +5,8 @@ use std::{convert::TryInto, intrinsics::transmute};
 //
 
 fn digest(array: [u32; 4]) -> String {
-    let bytes: [u8; 16] = unsafe { transmute(array) };
+    let bytes: &[u8] =
+        unsafe { std::slice::from_raw_parts((&array) as *const u32 as *const u8, 16) };
     let mut hexdigest = String::new();
     for b in bytes.iter() {
         hexdigest += &format!("{:02X}", b);
@@ -15,29 +14,27 @@ fn digest(array: [u32; 4]) -> String {
     hexdigest
 }
 
-fn md5(mut data: Vec<u8>) -> [u32; 4] {
-    const CHUNK: usize = 0x40; // the size of the chunk in bytes 64
-    /// 4 rounds with 16 operations in each totalling 64. Each item in S is bitwise shift amount
-    const S: [u32; CHUNK] = [
-        7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, 20, 5, 9, 14, 20, 5,
-        9, 14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10,
-        15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21,
-    ];
+const CHUNK: usize = 0x40; // the size of the chunk in bytes 64
+/// 4 rounds with 16 operations in each totalling 64. Each item in S is bitwise shift amount
+static S: [u32; CHUNK] = [
+    7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9,
+    14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15,
+    21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21,
+];
 
-    /// 4 rounds with 16 operations in each totalling 64. Each item in K is used to compute the value
-    /// to shift on each operation
-    const K: [u32; CHUNK] = [
-        0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf, 0x4787c62a, 0xa8304613,
-        0xfd469501, 0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be, 0x6b901122, 0xfd987193,
-        0xa679438e, 0x49b40821, 0xf61e2562, 0xc040b340, 0x265e5a51, 0xe9b6c7aa, 0xd62f105d,
-        0x02441453, 0xd8a1e681, 0xe7d3fbc8, 0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed,
-        0xa9e3e905, 0xfcefa3f8, 0x676f02d9, 0x8d2a4c8a, 0xfffa3942, 0x8771f681, 0x6d9d6122,
-        0xfde5380c, 0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70, 0x289b7ec6, 0xeaa127fa,
-        0xd4ef3085, 0x04881d05, 0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665, 0xf4292244,
-        0x432aff97, 0xab9423a7, 0xfc93a039, 0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1,
-        0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1, 0xf7537e82, 0xbd3af235, 0x2ad7d2bb,
-        0xeb86d391,
-    ];
+/// 4 rounds with 16 operations in each totalling 64. Each item in K is used to compute the value
+/// to shift on each operation
+static K: [u32; CHUNK] = [
+    0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
+    0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be, 0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821,
+    0xf61e2562, 0xc040b340, 0x265e5a51, 0xe9b6c7aa, 0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8,
+    0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed, 0xa9e3e905, 0xfcefa3f8, 0x676f02d9, 0x8d2a4c8a,
+    0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c, 0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70,
+    0x289b7ec6, 0xeaa127fa, 0xd4ef3085, 0x04881d05, 0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665,
+    0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039, 0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1,
+    0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1, 0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391,
+];
+fn md5(mut data: Vec<u8>) -> [u32; 4] {
     let mut a0: u32 = 0x67452301; // A
     let mut b0: u32 = 0xefcdab89; // B
     let mut c0: u32 = 0x98badcfe; // C
@@ -61,10 +58,7 @@ fn md5(mut data: Vec<u8>) -> [u32; 4] {
 
     let chunks = data.chunks(CHUNK);
     for chnk in chunks {
-        let m = chnk
-            .chunks(4)
-            .map(|c| u32::from_le_bytes(c.try_into().expect("FAILDED TO CONVERT")))
-            .collect::<Vec<u32>>();
+        let m: &[u32] = unsafe { std::slice::from_raw_parts(chnk.as_ptr() as *const u32, 16) };
         let mut a = a0;
         let mut b = b0;
         let mut c = c0;
@@ -102,18 +96,12 @@ fn md5(mut data: Vec<u8>) -> [u32; 4] {
 
 #[cfg(test)]
 mod tests {
-    use std::intrinsics::transmute;
     #[test]
     fn test_md5() {
-        let data = "Hello world!".as_bytes().to_vec();
-        let hash = [
-            0x86, 0xFB, 0x26, 0x9D, 0x19, 0x0D, 0x2C, 0x85, 0xF6, 0xE0, 0x46, 0x8C, 0xEC, 0xA4,
-            0x2A, 0x20,
-        ];
-        let hash = unsafe { transmute::<[u8; 16], [u32; 4]>(hash) };
+        let data = "Lorem Ipsum - это текст-\"рыба\", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной \"рыбой\" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без заметных изменений пять веков, но и перешагнул в электронный дизайн. Его популяризации в новое время послужили публикация листов Letraset с образцами Lorem Ipsum в 60-х годах и, в более недавнее время, программы электронной вёрстки типа Aldus PageMaker, в шаблонах которых используется Lorem Ipsum.".as_bytes().to_vec();
         let res = super::md5(data);
-        assert_eq!(res, hash);
-        let hash = "86FB269D190D2C85F6E0468CECA42A20";
+        // assert_eq!(res, hash);
+        let hash = "4F15CB2065FB348EA4DD6DD1F05153F3";
         assert_eq!(super::digest(res), hash);
     }
 }
