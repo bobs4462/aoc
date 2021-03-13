@@ -1,16 +1,54 @@
 /// --- Day 4: The Ideal Stocking Stuffer ---
 use crate::solver::{Solution, Solver};
+use std::sync::mpsc;
+use std::thread;
+//
+use num_cpus;
 
 pub(crate) struct D4;
 
 impl Solver for D4 {
+    /// Validate that every character in the input is ASCII alphanumeric
     fn validate(&self, input: &[u8]) -> Result<(), String> {
-        drop(input);
+        for (i, &c) in input.iter().enumerate() {
+            if !c.is_ascii_alphanumeric() {
+                return Err(format!("The character at postion {} is invalid: {}", i, c,));
+            }
+        }
         Ok(())
     }
     fn solve_part_one(&self, data: Vec<u8>) -> Solution {
-        md5(data);
-        Solution::new("", String::new())
+        // let mut solution: usize = 0;
+        // for i in 0..usize::MAX {
+        // let mut copy = data.clone();
+        // copy.extend(i.to_string().as_bytes());
+        // if md5(copy)[0].to_be() <= 0xfff {
+        // solution = i;
+        // break;
+        // }
+        // }
+        let cores = num_cpus::get() - 1;
+        let (tx, rx) = mpsc::channel::<usize>();
+        for c in 0..cores {
+            let tx = tx.clone();
+            let original = data.clone();
+            thread::spawn(move || {
+                for i in (c..usize::MAX).step_by(cores) {
+                    let mut test = original.clone();
+                    test.extend(i.to_string().as_bytes());
+                    if md5(test)[0].to_be() <= 0xfff {
+                        tx.send(i).expect("CHANNEL FAILURE");
+                    }
+                }
+            });
+        }
+        if let Ok(num) = rx.recv() {
+            // data.extend(solution.to_string().as_bytes().iter());
+            // println!("THE HASH IS: {:?}", md5(data)[0].to_ne_bytes());
+            return Solution::new("The number to mine bitcoin is:", num.to_string());
+        } else {
+            panic!("Channel has hang up unexpectedly");
+        }
     }
 
     fn solve_part_two(&self, data: Vec<u8>) -> Solution {
@@ -119,6 +157,7 @@ fn md5(mut data: Vec<u8>) -> [u32; 4] {
 
 #[cfg(test)]
 mod tests {
+    use crate::solver::Solver;
     #[test]
     fn test_md5() {
         let data = "Lorem Ipsum - это текст-\"рыба\", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной \"рыбой\" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без заметных изменений пять веков, но и перешагнул в электронный дизайн. Его популяризации в новое время послужили публикация листов Letraset с образцами Lorem Ipsum в 60-х годах и, в более недавнее время, программы электронной вёрстки типа Aldus PageMaker, в шаблонах которых используется Lorem Ipsum.".as_bytes().to_vec();
@@ -126,6 +165,14 @@ mod tests {
         // assert_eq!(res, hash);
         let hash = "4F15CB2065FB348EA4DD6DD1F05153F3";
         assert_eq!(super::digest(res), hash);
+    }
+
+    #[test]
+    fn test_part_one() {
+        let data = b"abcdef".to_vec();
+        let solver = super::D4 {};
+        let res = solver.solve_part_one(data);
+        assert_eq!(res.value, "609043");
     }
 }
 
