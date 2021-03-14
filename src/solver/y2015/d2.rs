@@ -2,7 +2,7 @@
 use crate::solver::{Solution, Solver};
 use std::io::BufRead;
 
-pub(crate) struct D2;
+pub struct D2;
 
 impl Solver for D2 {
     /// There's a need to validate that every line of the input consists of the following pattern

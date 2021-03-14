@@ -2,7 +2,7 @@
 use crate::solver::{Solution, Solver};
 use std::collections::HashSet;
 
-pub(crate) struct D3;
+pub struct D3;
 
 struct Coords {
     current: (isize, isize),

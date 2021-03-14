@@ -5,7 +5,7 @@ use std::thread;
 //
 use num_cpus;
 
-pub(crate) struct D4;
+pub struct D4;
 
 impl Solver for D4 {
     /// Validate that every character in the input is ASCII alphanumeric
