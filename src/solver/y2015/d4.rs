@@ -18,15 +18,16 @@ impl Solver for D4 {
         Ok(())
     }
     fn solve_part_one(&self, data: Vec<u8>) -> Solution {
-        // let mut solution: usize = 0;
-        // for i in 0..usize::MAX {
-        // let mut copy = data.clone();
-        // copy.extend(i.to_string().as_bytes());
-        // if md5(copy)[0].to_be() <= 0xfff {
-        // solution = i;
-        // break;
-        // }
-        // }
+        self.find_num(data, 0xfff)
+    }
+
+    fn solve_part_two(&self, data: Vec<u8>) -> Solution {
+        self.find_num(data, 0xff)
+    }
+}
+
+impl D4 {
+    fn find_num(&self, data: Vec<u8>, compare_to: u32) -> Solution {
         let cores = num_cpus::get() - 1;
         let (tx, rx) = mpsc::channel::<usize>();
         for c in 0..cores {
@@ -36,24 +37,20 @@ impl Solver for D4 {
                 for i in (c..usize::MAX).step_by(cores) {
                     let mut test = original.clone();
                     test.extend(i.to_string().as_bytes());
-                    if md5(test)[0].to_be() <= 0xfff {
-                        tx.send(i).expect("CHANNEL FAILURE");
+                    let first = md5(test)[0].to_be();
+                    if first <= compare_to {
+                        match tx.send(i) {
+                            _ => break,
+                        }
                     }
                 }
             });
         }
         if let Ok(num) = rx.recv() {
-            // data.extend(solution.to_string().as_bytes().iter());
-            // println!("THE HASH IS: {:?}", md5(data)[0].to_ne_bytes());
             return Solution::new("The number to mine bitcoin is:", num.to_string());
         } else {
             panic!("Channel has hang up unexpectedly");
         }
-    }
-
-    fn solve_part_two(&self, data: Vec<u8>) -> Solution {
-        md5(data);
-        Solution::new("", String::new())
     }
 }
 
@@ -173,6 +170,13 @@ mod tests {
         let solver = super::D4 {};
         let res = solver.solve_part_one(data);
         assert_eq!(res.value, "609043");
+    }
+    #[test]
+    fn test_part_two() {
+        let data = b"ckczppom".to_vec();
+        let solver = super::D4 {};
+        let res = solver.solve_part_two(data);
+        assert_eq!(res.value, "3938038");
     }
 }
 
