@@ -15,31 +15,26 @@ impl Solver for D5 {
 
     fn solve_part_one(&self, data: Vec<u8>) -> Solution {
         let lines = data.split(|c| c.is_ascii_whitespace());
-        let mut nice = Vec::new();
+        let mut nice = 0;
         let prohibited = ["ab", "cd", "pq", "xy"];
         let vowels = b"aeiou";
-        for l in lines {
+        'words: for l in lines {
             let word = unsafe { std::str::from_utf8_unchecked(l) };
-            let mut is_naughty = false;
             for &pr in &prohibited {
                 if let Some(_) = word.find(pr) {
-                    is_naughty = true;
-                    break;
+                    continue 'words;
                 }
             }
-            if is_naughty {
-                continue;
-            }
             let mut prev: u8 = 0;
-            is_naughty = true;
+            let mut is_nice = false;
             for &c in l {
                 if c == prev {
-                    is_naughty = false;
+                    is_nice = true;
                     break;
                 }
                 prev = c;
             }
-            if is_naughty {
+            if !is_nice {
                 continue;
             }
             let mut vowel_count = 0;
@@ -51,14 +46,47 @@ impl Solver for D5 {
                 }
             }
             if vowel_count > 2 {
-                nice.push(l);
+                nice += 1;
             }
         }
-        Solution::new("Nice words count is:", nice.len().to_string())
+        Solution::new("Nice words count is:", nice.to_string())
     }
     fn solve_part_two(&self, data: Vec<u8>) -> Solution {
-        drop(data);
-        Solution::new("", String::from(""))
+        let lines = data.split(|c| c.is_ascii_whitespace());
+        let mut nice = 0;
+        for l in lines {
+            let mut pairs = Vec::new();
+            let mut prev: &[u8] = b"";
+            let len = l.len() - 1;
+            for i in 0..len {
+                let cur = &l[i..(i + 2)];
+                if prev == cur {
+                    // println!("{}", std::str::from_utf8(l).unwrap());
+                    prev = b"";
+                    continue;
+                }
+                pairs.push(cur);
+                prev = cur;
+            }
+            let before = pairs.len();
+            pairs.sort();
+            pairs.dedup();
+            let after = pairs.len();
+            if before == after {
+                continue;
+            }
+            let mut is_nice = false;
+            for i in 2..=len {
+                if l[i - 2] == l[i] {
+                    is_nice = true;
+                    break;
+                }
+            }
+            if is_nice {
+                nice += 1;
+            }
+        }
+        Solution::new("Nice words count is:", nice.to_string())
     }
 }
 
@@ -72,5 +100,13 @@ mod tests {
         let solver = super::D5 {};
         let res = solver.solve_part_one(data);
         assert_eq!(res.value, "2");
+    }
+    #[test]
+    fn test_part_two() {
+        let data = b"qjhvhtzxzqqjkmpb\nxxyxx\nuurcxstgmygtbstg\nieodomkazucvgmuy\ndodjadoqyxsuazxt\njjwkrlquazzjbvlm"
+            .to_vec();
+        let solver = super::D5 {};
+        let res = solver.solve_part_two(data);
+        assert_eq!(res.value, "3");
     }
 }

@@ -156,6 +156,7 @@ fn md5(mut data: Vec<u8>) -> [u32; 4] {
 mod tests {
     use crate::solver::Solver;
     #[test]
+    #[ignore]
     fn test_md5() {
         let data = "Lorem Ipsum - это текст-\"рыба\", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной \"рыбой\" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без заметных изменений пять веков, но и перешагнул в электронный дизайн. Его популяризации в новое время послужили публикация листов Letraset с образцами Lorem Ipsum в 60-х годах и, в более недавнее время, программы электронной вёрстки типа Aldus PageMaker, в шаблонах которых используется Lorem Ipsum.".as_bytes().to_vec();
         let res = super::md5(data);
@@ -165,6 +166,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_part_one() {
         let data = b"abcdef".to_vec();
         let solver = super::D4 {};
@@ -172,6 +174,7 @@ mod tests {
         assert_eq!(res.value, "609043");
     }
     #[test]
+    #[ignore]
     fn test_part_two() {
         let data = b"ckczppom".to_vec();
         let solver = super::D4 {};
