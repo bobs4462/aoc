@@ -156,8 +156,47 @@ impl Solver for D6 {
         Solution::new("The number of lights lit:", lit.to_string())
     }
     fn solve_part_two(&self, data: Vec<u8>) -> Solution {
-        drop(data);
-        Solution::new("Nice words count is:", 1.to_string())
+        let mut instructions = Vec::with_capacity(300);
+        for l in data.split(|&c| c == b'\n') {
+            instructions.push(Instruction::new(l));
+        }
+        let instructions = Arc::new(instructions);
+        let (tx, rx) = mpsc::channel::<u32>();
+        let cores = num_cpus::get() - 1;
+        let mut ranges = Range::split(1000, cores);
+        for _ in 0..cores {
+            let instructions = Arc::clone(&instructions);
+            let tx = tx.clone();
+            let r = ranges.pop().expect("Not enough ranges!");
+            thread::spawn(move || {
+                let mut lit: u32 = 0;
+                for x in r.0..r.1 {
+                    for y in 0..1000 {
+                        let mut brigtness = 0;
+                        for instr in instructions.iter() {
+                            if !instr.range.inrange((x, y)) {
+                                continue;
+                            }
+                            match instr.action {
+                                Action::On => brigtness += 1,
+                                Action::Off => brigtness -= if brigtness > 0 { 1 } else { 0 },
+                                Action::Toggle => brigtness += 2,
+                            }
+                        }
+                        lit += brigtness;
+                    }
+                }
+                tx.send(lit).expect("Couldn't send partial result!");
+            });
+        }
+
+        let mut lit = 0;
+        drop(tx);
+        while let Ok(value) = rx.recv() {
+            lit += value;
+        }
+
+        Solution::new("The number of lights lit:", lit.to_string())
     }
 }
 
@@ -188,12 +227,14 @@ mod tests {
             vec![(0, 1333), (1333, 2666), (2666, 4000)]
         );
     }
-    // #[test]
-    // fn test_part_two() {
-    // let data = b"qjhvhtzxzqqjkmpb\nxxyxx\nuurcxstgmygtbstg\nieodomkazucvgmuy\ndodjadoqyxsuazxt\njjwkrlquazzjbvlm"
-    // .to_vec();
-    // let solver = super::D5 {};
-    // let res = solver.solve_part_two(data);
-    // assert_eq!(res.value, "3");
-    // }
+    #[test]
+    fn test_part_two() {
+        let solver = super::D6;
+        let mut data = b"turn on 0,0 through 0,0".to_vec();
+        let mut res = solver.solve_part_two(data);
+        assert_eq!(res.value, "1");
+        data = b"toggle 0,0 through 999,999".to_vec();
+        res = solver.solve_part_two(data);
+        assert_eq!(res.value, "2000000");
+    }
 }
