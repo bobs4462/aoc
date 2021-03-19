@@ -1,4 +1,6 @@
 /// --- Day 5: Doesn't He Have Intern-Elves For This? ---
+pub struct D6;
+
 struct Instruction {
     action: Action,
     range: Range,
@@ -15,7 +17,6 @@ enum Action {
     On = 1,
     Toggle,
 }
-pub struct D6;
 
 impl Instruction {
     fn new(instruction: &[u8]) -> Self {

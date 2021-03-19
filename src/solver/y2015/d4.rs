@@ -1,11 +1,10 @@
 /// --- Day 4: The Ideal Stocking Stuffer ---
+pub struct D4;
+
 use crate::solver::{Solution, Solver};
+use num_cpus;
 use std::sync::mpsc;
 use std::thread;
-//
-use num_cpus;
-
-pub struct D4;
 
 impl Solver for D4 {
     /// Validate that every character in the input is ASCII alphanumeric

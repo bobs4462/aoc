@@ -1,7 +1,7 @@
 /// --- Day 1: Not Quite Lisp ---
-use crate::solver::{Solution, Solver};
-
 pub struct D1;
+
+use crate::solver::{Solution, Solver};
 
 impl Solver for D1 {
     /// The input consists only of left and right parentheses, so the validation is done to ensure

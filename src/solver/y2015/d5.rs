@@ -1,5 +1,6 @@
 /// --- Day 5: Doesn't He Have Intern-Elves For This? ---
 pub struct D5;
+
 use crate::solver::{Solution, Solver};
 
 impl Solver for D5 {

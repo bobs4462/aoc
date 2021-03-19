@@ -1,8 +1,8 @@
 /// --- Day 3: Perfectly Spherical Houses in a Vacuum ---
+pub struct D3;
+
 use crate::solver::{Solution, Solver};
 use std::collections::HashSet;
-
-pub struct D3;
 
 struct Coords {
     current: (isize, isize),
