@@ -1,8 +1,7 @@
-use crate::config::Config;
-use std::io;
 use std::sync::mpsc::{self, Receiver};
 use std::thread;
 use std::thread::JoinHandle;
+use std::{io, time::Duration};
 use termion::input::TermRead;
 
 use termion::event::Key;
@@ -20,10 +19,6 @@ pub struct EventProvider {
 
 impl EventProvider {
     pub fn new() -> Self {
-        Self::with_config(&Config::default())
-    }
-
-    pub fn with_config(config: &Config) -> Self {
         let (tx, rx) = mpsc::channel();
         let key_thread_handle = {
             let tx = tx.clone();
@@ -39,7 +34,7 @@ impl EventProvider {
                 }
             })
         };
-        let tick_rate = config.tick_rate;
+        let tick_rate = Duration::from_millis(200);
         let tick_thread_handle = {
             thread::spawn(move || loop {
                 if tx.send(Event::Tick).is_err() {
