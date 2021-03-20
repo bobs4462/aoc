@@ -5,16 +5,15 @@ use std::collections::HashMap;
 
 use crate::solver::{Solution, Solver};
 
+#[derive(Debug)]
 struct Deps<'a> {
     storage: HashMap<&'a str, u16>,
-    target: &'a str,
 }
 
 impl<'a> Deps<'a> {
-    fn new(target: &'a str) -> Self {
+    fn new() -> Self {
         Deps {
             storage: HashMap::with_capacity(350),
-            target,
         }
     }
     fn satisfies(&self, dep: Dependency) -> bool {
@@ -34,22 +33,22 @@ impl<'a> Deps<'a> {
         *self.storage.get(key).expect("Key does not exist")
     }
 
-    fn solved(&self) -> bool {
-        self.storage.contains_key(self.target)
+    fn solved(&self, key: &str) -> bool {
+        self.storage.contains_key(key)
     }
 }
 
 struct Expr {
     output: String,
     input: Input,
-    solved: bool,
 }
 
 impl Expr {
     fn parse(expr: &str) -> Self {
         let mut split = expr.split(" -> ");
-        let output = String::from(split.next().unwrap());
+        // println!("SPLIT: {:?}", split);
         let expr: Vec<&str> = split.next().unwrap().split(' ').collect();
+        let output = String::from(split.next().unwrap());
         let input: Input;
         match expr.len() {
             1 => input = Input::ident(expr[0]),
@@ -57,11 +56,7 @@ impl Expr {
             3 => input = Input::binary(expr[0], expr[1], expr[2]),
             l => panic!("Wrong length of expr tokens list: {}", l),
         }
-        Expr {
-            output,
-            input,
-            solved: false,
-        }
+        Expr { output, input }
     }
 
     fn dependency(&self) -> Dependency {
@@ -98,6 +93,7 @@ impl Expr {
     }
 }
 
+#[derive(Debug)]
 enum Dependency<'a> {
     Binary(&'a str, &'a str),
     Unary(&'a str),
@@ -163,14 +159,15 @@ impl Solver for D7 {
     }
 
     fn solve_part_one(&self, data: Vec<u8>) -> Solution {
-        let mut deps = Deps::new("a");
-        let mut exprs = self.expressions(data.as_slice());
-        while deps.solved() {
-            for mut e in exprs.iter_mut() {
-                if e.solved {
+        let mut deps = Deps::new();
+        let exprs = self.expressions(data.as_slice());
+        while !deps.solved("a") {
+            for e in exprs.iter() {
+                if deps.solved(&e.output) {
                     continue;
                 }
                 if !deps.satisfies(e.dependency()) {
+                    // println!("DEPS: {:?}, REQUEST: {:?}", deps, e.dependency());
                     continue;
                 }
                 match e.input {
@@ -201,11 +198,12 @@ impl Solver for D7 {
                 }
             }
         }
-        Solution::new("", String::from(""))
+        Solution::new("The 'a' wire has the output of:", deps.get("a").to_string())
     }
 
     fn solve_part_two(&self, data: Vec<u8>) -> Solution {
-        Solution::new("", String::from(""))
+        drop(data);
+        Solution::new("The 'a' wire has the output of:", "a".to_string())
     }
 }
 
@@ -235,5 +233,17 @@ impl D7 {
             Operand::Wire(ref w) => r = deps.get(w),
         }
         (l, r)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::solver::Solver;
+    #[test]
+    fn test_part_one() {
+        let data = b"123 -> x\n456 -> y\nx AND y -> a\nx OR y -> e\nx LSHIFT 2 -> f\ny RSHIFT 2 -> g\nNOT x -> h\nNOT y -> i".to_vec();
+        let solver = super::D7;
+        let res = solver.solve_part_one(data);
+        assert_eq!(res.value, "72");
     }
 }
