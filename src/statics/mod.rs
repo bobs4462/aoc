@@ -14,6 +14,7 @@ lazy_static! {
                 Day::new(6, Box::new(D6)),
                 Day::new(7, Box::new(D7)),
                 Day::new(8, Box::new(D8)),
+                Day::new(9, Box::new(D9)),
             ]
         ),
         Year::new(2016, vec![Day::new(1, Box::new(D1))]),
