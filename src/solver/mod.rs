@@ -56,7 +56,14 @@ impl Display for Solution {
 }
 
 pub trait Solver: Sync {
-    fn validate(&self, input: &[u8]) -> Result<(), String>;
+    fn validate(&self, input: &[u8]) -> Result<(), String> {
+        for (i, &c) in input.iter().enumerate() {
+            if !c.is_ascii() {
+                return Err(format!("The character at postion {} is invalid: {}", i, c,));
+            }
+        }
+        Ok(())
+    }
     fn solve_part_one(&self, data: Vec<u8>) -> Solution;
     fn solve_part_two(&self, data: Vec<u8>) -> Solution;
     fn solve(&self, mut f: File, part: Part) -> Result<String, SolveError> {

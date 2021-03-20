@@ -103,18 +103,6 @@ fn binary(lhs: &str, rhs: &str, resolved: &HashMap<&str, u16>) -> (u16, u16) {
     (l, r)
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::solver::Solver;
-    #[test]
-    fn test_part_one() {
-        let solver = super::D7;
-        let data = b"123 -> x\n456 -> y\nx AND y -> a\nx OR y -> e\nx LSHIFT 2 -> f\ny RSHIFT 2 -> g\nNOT x -> h\nNOT y -> i".to_vec();
-        let res = solver.solve_part_one(data);
-        assert_eq!(res.value, "72");
-    }
-}
-
 fn compute<'a, 'b: 'a>(tsorted: &'a Vec<&'b Expr>, resolved: &'a mut HashMap<&'b str, u16>) {
     for e in tsorted.iter() {
         if resolved.contains_key(e.output.as_str()) {
@@ -169,4 +157,16 @@ fn tsort<'a>(expressions: &'a Vec<Expr>) -> Vec<&'a Expr> {
         }
     }
     tsorted
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::solver::Solver;
+    #[test]
+    fn test_part_one() {
+        let solver = super::D7;
+        let data = b"123 -> x\n456 -> y\nx AND y -> a\nx OR y -> e\nx LSHIFT 2 -> f\ny RSHIFT 2 -> g\nNOT x -> h\nNOT y -> i".to_vec();
+        let res = solver.solve_part_one(data);
+        assert_eq!(res.value, "72");
+    }
 }
