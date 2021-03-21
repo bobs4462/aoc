@@ -216,4 +216,70 @@ Tambi to Straylight = 70"#
         let res = solver.solve_part_two(data);
         assert_eq!(res.value, "804");
     }
+    #[test]
+    fn test_permutator() {
+        use super::Permutator;
+        let vec = vec!["Boburbek", "Makhmudov", "Nodirbekovich"];
+        let mut permutator = Permutator::new(vec);
+        while let Some(p) = permutator.next() {
+            println!("{:?}", p);
+        }
+    }
+}
+
+/// Permuation generator, using Narayana’s next single permutation algorithm
+struct Permutator<T: PartialEq + Ord> {
+    collection: Vec<T>,
+    permutaions: u128,
+    factorial: u128,
+}
+
+impl<T: PartialEq + Ord + std::fmt::Debug> Permutator<T> {
+    fn new(mut collection: Vec<T>) -> Self {
+        collection.sort();
+        let factorial = fact(collection.len() as u8);
+        Permutator {
+            collection,
+            permutaions: 0,
+            factorial,
+        }
+    }
+
+    fn next(&mut self) -> Option<&[T]> {
+        if self.done() {
+            return None;
+        }
+        let iter = self.collection.windows(2).enumerate();
+        let mut k: usize = 0;
+        let mut j: usize = 0;
+        for (i, p) in iter {
+            if p[0] < p[1] {
+                k = i;
+            }
+        }
+        let iter = self.collection[k + 1..].iter().enumerate();
+        for (i, t) in iter {
+            if self.collection[k] < *t {
+                j = i + k + 1;
+            }
+        }
+        println!("K: {}, J: {}", k, j);
+        self.collection.swap(k, j);
+        self.collection[k + 1..].reverse();
+        println!("AFTER SWAP/REVERSE: {:?}", self.collection);
+        self.permutaions += 1;
+        Some(self.collection.as_slice())
+    }
+    #[inline]
+    fn done(&self) -> bool {
+        self.permutaions == self.factorial
+    }
+}
+
+fn fact(val: u8) -> u128 {
+    let mut res = 1;
+    for i in 1..=val {
+        res *= i as u128;
+    }
+    res
 }
