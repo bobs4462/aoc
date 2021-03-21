@@ -1,5 +1,5 @@
 from pathlib import Path
-filepath = Path("/Users/dinislam/PycharmProjects/aoc/inputs/y2015d1.txt")
+filepath = Path("y2015d1_input")
 
 print(filepath.name)
 
