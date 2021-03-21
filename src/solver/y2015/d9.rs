@@ -5,6 +5,7 @@ use crate::solver::{Solution, Solver};
 use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
+    marker::PhantomData,
     rc::Rc,
 };
 
@@ -219,37 +220,50 @@ Tambi to Straylight = 70"#
     #[test]
     fn test_permutator() {
         use super::Permutator;
-        let vec = vec!["Boburbek", "Makhmudov", "Nodirbekovich"];
-        let mut permutator = Permutator::new(vec);
-        while let Some(p) = permutator.next() {
+        let vec = &mut ["Boburbek", "Makhmudov", "Nodirbekovich"];
+        let permutator = Permutator::new(vec);
+        for p in permutator {
             println!("{:?}", p);
         }
     }
 }
 
 /// Permuation generator, using Narayana’s next single permutation algorithm
-struct Permutator<T: PartialEq + Ord> {
-    collection: Vec<T>,
+struct Permutator<'a, T: PartialEq + Ord + 'a> {
+    // Actually I just wrote it for fun :)
+    collection: *mut T,
+    len: usize,
     permutaions: u128,
     factorial: u128,
+    _marker: PhantomData<&'a T>,
 }
 
-impl<T: PartialEq + Ord + std::fmt::Debug> Permutator<T> {
-    fn new(mut collection: Vec<T>) -> Self {
+impl<'a, T: PartialEq + Ord> Permutator<'a, T> {
+    fn new(collection: &'a mut [T]) -> Self {
         collection.sort();
         let factorial = fact(collection.len() as u8);
         Permutator {
-            collection,
+            collection: collection.as_mut_ptr(),
+            len: collection.len(),
             permutaions: 0,
             factorial,
+            _marker: PhantomData,
         }
     }
 
-    fn next(&mut self) -> Option<&[T]> {
+    #[inline]
+    fn done(&self) -> bool {
+        self.permutaions == self.factorial
+    }
+}
+impl<'a, T: PartialEq + Ord> Iterator for Permutator<'a, T> {
+    type Item = &'a [T];
+    fn next(&mut self) -> Option<Self::Item> {
         if self.done() {
             return None;
         }
-        let iter = self.collection.windows(2).enumerate();
+        let slice = unsafe { std::slice::from_raw_parts_mut(self.collection, self.len) };
+        let iter = slice.windows(2).enumerate();
         let mut k: usize = 0;
         let mut j: usize = 0;
         for (i, p) in iter {
@@ -257,22 +271,16 @@ impl<T: PartialEq + Ord + std::fmt::Debug> Permutator<T> {
                 k = i;
             }
         }
-        let iter = self.collection[k + 1..].iter().enumerate();
+        let iter = slice[k + 1..].iter().enumerate();
         for (i, t) in iter {
-            if self.collection[k] < *t {
+            if slice[k] < *t {
                 j = i + k + 1;
             }
         }
-        println!("K: {}, J: {}", k, j);
-        self.collection.swap(k, j);
-        self.collection[k + 1..].reverse();
-        println!("AFTER SWAP/REVERSE: {:?}", self.collection);
+        slice.swap(k, j);
+        slice[k + 1..].reverse();
         self.permutaions += 1;
-        Some(self.collection.as_slice())
-    }
-    #[inline]
-    fn done(&self) -> bool {
-        self.permutaions == self.factorial
+        Some(slice)
     }
 }
 
