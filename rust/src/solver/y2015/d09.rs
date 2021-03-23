@@ -204,6 +204,7 @@ struct Permutator<'a, T: PartialEq + Ord + 'a> {
     _marker: PhantomData<&'a mut T>,
 }
 
+#[allow(dead_code)]
 impl<'a, T: PartialEq + Ord> Permutator<'a, T> {
     fn new(collection: &'a mut [T]) -> Self {
         collection.sort();
@@ -259,7 +260,8 @@ fn fact(val: u8) -> u128 {
 }
 
 /// Made this version based on brute force permutations of all possible routes
-/// It's allmos the same performance wise, but requires so much less memory
+/// It's almost the same performance wise, but requires so much less memory
+#[allow(dead_code)]
 pub fn part_two_v2(data: Vec<u8>) -> (usize, usize) {
     let lines = data.split(|&c| c == b'\n');
     let mut routes: HashMap<(&str, &str), usize> = HashMap::new();
