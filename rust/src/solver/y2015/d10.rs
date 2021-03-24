@@ -1,4 +1,4 @@
-/// --- Day 9: All in a Single Night ---
+/// --- Day 10: Elves Look, Elves Say ---
 pub struct D10;
 
 use crate::solver::{Solution, Solver};
@@ -45,7 +45,7 @@ fn reevaluate(input: Vec<u8>) -> Vec<u8> {
         if last == c {
             counter += 1;
         } else {
-            res.extend(counter.to_string().as_bytes().iter());
+            res.push(counter + 0x30);
             res.push(last);
             counter = 1;
         }

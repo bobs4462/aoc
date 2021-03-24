@@ -8,6 +8,7 @@ mod d07;
 mod d08;
 mod d09;
 mod d10;
+mod d11;
 
 pub use d01::D1;
 pub use d02::D2;
@@ -19,3 +20,4 @@ pub use d07::D7;
 pub use d08::D8;
 pub use d09::D9;
 pub use d10::D10;
+pub use d11::D11;
