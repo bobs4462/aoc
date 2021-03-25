@@ -34,7 +34,7 @@ impl EventProvider {
                 }
             })
         };
-        let tick_rate = Duration::from_millis(200);
+        let tick_rate = Duration::from_millis(50);
         let tick_thread_handle = {
             thread::spawn(move || loop {
                 if tx.send(Event::Tick).is_err() {

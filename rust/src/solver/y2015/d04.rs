@@ -31,17 +31,26 @@ impl D4 {
         let (tx, rx) = mpsc::channel::<usize>();
         for c in 0..cores {
             let tx = tx.clone();
-            let original = data.clone();
+            let len = data.len();
+            let mut original = Vec::with_capacity(len + 10);
+            original.append(&mut data.clone());
             thread::spawn(move || {
+                let mut tmp: Vec<u8> = Vec::with_capacity(10);
                 for i in (c..usize::MAX).step_by(cores) {
-                    let mut test = original.clone();
-                    test.extend(i.to_string().as_bytes());
-                    let first = md5(test)[0].to_be();
+                    let mut num = i;
+                    while num != 0 {
+                        tmp.push((num % 10) as u8 + 0x30);
+                        num /= 10;
+                    }
+                    original.extend(tmp.iter().rev());
+                    tmp.clear();
+                    let first = md5(&mut original)[0].to_be();
                     if first <= compare_to {
                         match tx.send(i) {
                             _ => break,
                         }
                     }
+                    original.resize(len, 0);
                 }
             });
         }
@@ -91,7 +100,7 @@ static PADDING: [u8; CHUNK] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 ];
 
-fn md5(mut data: Vec<u8>) -> [u32; 4] {
+fn md5(data: &mut Vec<u8>) -> [u32; 4] {
     let mut a0: u32 = 0x67452301; // A
     let mut b0: u32 = 0xefcdab89; // B
     let mut c0: u32 = 0x98badcfe; // C
@@ -157,8 +166,8 @@ mod tests {
     #[test]
     #[ignore]
     fn test_md5() {
-        let data = "Lorem Ipsum - это текст-\"рыба\", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной \"рыбой\" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без заметных изменений пять веков, но и перешагнул в электронный дизайн. Его популяризации в новое время послужили публикация листов Letraset с образцами Lorem Ipsum в 60-х годах и, в более недавнее время, программы электронной вёрстки типа Aldus PageMaker, в шаблонах которых используется Lorem Ipsum.".as_bytes().to_vec();
-        let res = super::md5(data);
+        let mut data = "Lorem Ipsum - это текст-\"рыба\", часто используемый в печати и вэб-дизайне. Lorem Ipsum является стандартной \"рыбой\" для текстов на латинице с начала XVI века. В то время некий безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для распечатки образцов. Lorem Ipsum не только успешно пережил без заметных изменений пять веков, но и перешагнул в электронный дизайн. Его популяризации в новое время послужили публикация листов Letraset с образцами Lorem Ipsum в 60-х годах и, в более недавнее время, программы электронной вёрстки типа Aldus PageMaker, в шаблонах которых используется Lorem Ipsum.".as_bytes().to_vec();
+        let res = super::md5(&mut data);
         // assert_eq!(res, hash);
         let hash = "4F15CB2065FB348EA4DD6DD1F05153F3";
         assert_eq!(super::digest(res), hash);
