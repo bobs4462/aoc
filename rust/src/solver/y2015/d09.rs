@@ -5,6 +5,7 @@ use crate::solver::{Solution, Solver};
 use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
+    marker::PhantomData,
     rc::Rc,
 };
 
@@ -136,14 +137,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::solver::Solver;
-    #[test]
-    fn test_part_one() {
-        let solver = super::D9;
-        let data =
-            b"London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141".to_vec();
-        let res = solver.solve_part_one(data);
-        assert_eq!(res.value, "605");
-        let data = r#"Faerun to Norrath = 129
+    const DATA: &'static str = r#"Faerun to Norrath = 129
 Faerun to Tristram = 58
 Faerun to AlphaCentauri = 13
 Faerun to Arbre = 24
@@ -170,10 +164,16 @@ Arbre to Tambi = 53
 Arbre to Straylight = 40
 Snowdin to Tambi = 15
 Snowdin to Straylight = 99
-Tambi to Straylight = 70"#
-            .as_bytes()
-            .to_vec();
+Tambi to Straylight = 70"#;
+
+    #[test]
+    fn test_part_one() {
+        let solver = super::D9;
+        let data =
+            b"London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141".to_vec();
         let res = solver.solve_part_one(data);
+        assert_eq!(res.value, "605");
+        let res = solver.solve_part_one(DATA.as_bytes().to_vec());
         assert_eq!(res.value, "207");
     }
     #[test]
@@ -183,73 +183,54 @@ Tambi to Straylight = 70"#
             b"London to Dublin = 464\nLondon to Belfast = 518\nDublin to Belfast = 141".to_vec();
         let res = solver.solve_part_two(data);
         assert_eq!(res.value, "982");
-        let data = r#"Faerun to Norrath = 129
-Faerun to Tristram = 58
-Faerun to AlphaCentauri = 13
-Faerun to Arbre = 24
-Faerun to Snowdin = 60
-Faerun to Tambi = 71
-Faerun to Straylight = 67
-Norrath to Tristram = 142
-Norrath to AlphaCentauri = 15
-Norrath to Arbre = 135
-Norrath to Snowdin = 75
-Norrath to Tambi = 82
-Norrath to Straylight = 54
-Tristram to AlphaCentauri = 118
-Tristram to Arbre = 122
-Tristram to Snowdin = 103
-Tristram to Tambi = 49
-Tristram to Straylight = 97
-AlphaCentauri to Arbre = 116
-AlphaCentauri to Snowdin = 12
-AlphaCentauri to Tambi = 18
-AlphaCentauri to Straylight = 91
-Arbre to Snowdin = 129
-Arbre to Tambi = 53
-Arbre to Straylight = 40
-Snowdin to Tambi = 15
-Snowdin to Straylight = 99
-Tambi to Straylight = 70"#
-            .as_bytes()
-            .to_vec();
-        let res = solver.solve_part_two(data);
+        let res = solver.solve_part_two(DATA.as_bytes().to_vec());
         assert_eq!(res.value, "804");
     }
     #[test]
     fn test_permutator() {
-        use super::Permutator;
-        let vec = vec!["Boburbek", "Makhmudov", "Nodirbekovich"];
-        let mut permutator = Permutator::new(vec);
-        while let Some(p) = permutator.next() {
-            println!("{:?}", p);
-        }
+        let res = super::part_two_v2(DATA.as_bytes().to_vec());
+        println!("RESULT: {:?}", res);
+        assert_eq!(res, (207, 804));
     }
 }
 
 /// Permuation generator, using Narayana’s next single permutation algorithm
-struct Permutator<T: PartialEq + Ord> {
-    collection: Vec<T>,
+struct Permutator<'a, T: PartialEq + Ord + 'a> {
+    // Actually I just wrote it for fun :)
+    collection: *mut T,
+    len: usize,
     permutaions: u128,
     factorial: u128,
+    _marker: PhantomData<&'a mut T>,
 }
 
-impl<T: PartialEq + Ord + std::fmt::Debug> Permutator<T> {
-    fn new(mut collection: Vec<T>) -> Self {
+#[allow(dead_code)]
+impl<'a, T: PartialEq + Ord> Permutator<'a, T> {
+    fn new(collection: &'a mut [T]) -> Self {
         collection.sort();
         let factorial = fact(collection.len() as u8);
         Permutator {
-            collection,
+            collection: collection.as_mut_ptr(),
+            len: collection.len(),
             permutaions: 0,
             factorial,
+            _marker: PhantomData,
         }
     }
 
-    fn next(&mut self) -> Option<&[T]> {
+    #[inline]
+    fn done(&self) -> bool {
+        self.permutaions == self.factorial
+    }
+}
+impl<'a, T: PartialEq + Ord> Iterator for Permutator<'a, T> {
+    type Item = &'a [T];
+    fn next(&mut self) -> Option<Self::Item> {
         if self.done() {
             return None;
         }
-        let iter = self.collection.windows(2).enumerate();
+        let slice = unsafe { std::slice::from_raw_parts_mut(self.collection, self.len) };
+        let iter = slice.windows(2).enumerate();
         let mut k: usize = 0;
         let mut j: usize = 0;
         for (i, p) in iter {
@@ -257,22 +238,16 @@ impl<T: PartialEq + Ord + std::fmt::Debug> Permutator<T> {
                 k = i;
             }
         }
-        let iter = self.collection[k + 1..].iter().enumerate();
+        let iter = slice[k + 1..].iter().enumerate();
         for (i, t) in iter {
-            if self.collection[k] < *t {
+            if slice[k] < *t {
                 j = i + k + 1;
             }
         }
-        println!("K: {}, J: {}", k, j);
-        self.collection.swap(k, j);
-        self.collection[k + 1..].reverse();
-        println!("AFTER SWAP/REVERSE: {:?}", self.collection);
+        slice.swap(k, j);
+        slice[k + 1..].reverse();
         self.permutaions += 1;
-        Some(self.collection.as_slice())
-    }
-    #[inline]
-    fn done(&self) -> bool {
-        self.permutaions == self.factorial
+        Some(slice)
     }
 }
 
@@ -282,4 +257,40 @@ fn fact(val: u8) -> u128 {
         res *= i as u128;
     }
     res
+}
+
+/// Made this version based on brute force permutations of all possible routes
+/// It's almost the same performance wise, but requires so much less memory
+#[allow(dead_code)]
+pub fn part_two_v2(data: Vec<u8>) -> (usize, usize) {
+    let lines = data.split(|&c| c == b'\n');
+    let mut routes: HashMap<(&str, &str), usize> = HashMap::new();
+    let mut places: HashSet<&str> = HashSet::new();
+    for l in lines {
+        let path = unsafe { std::str::from_utf8_unchecked(l) };
+        let path: Vec<&str> = path.split(' ').collect();
+        let weigth = path[4].parse().unwrap();
+        routes.insert((path[0], path[2]), weigth);
+        places.insert(path[0]);
+        places.insert(path[2]);
+    }
+    let mut init = places.into_iter().collect::<Vec<&str>>();
+    let permutator = Permutator::new(init.as_mut_slice());
+    let mut shortest = usize::MAX;
+    let mut longest = usize::MIN;
+    'p: for p in permutator {
+        let mut distance = 0;
+        for w in p.windows(2) {
+            if let Some(d) = routes.get(&(w[0], w[1])) {
+                distance += d;
+            } else if let Some(d) = routes.get(&(w[1], w[0])) {
+                distance += d;
+            } else {
+                continue 'p;
+            }
+        }
+        shortest = shortest.min(distance);
+        longest = longest.max(distance);
+    }
+    (shortest, longest)
 }
