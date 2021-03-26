@@ -11,3 +11,10 @@ tui = { version = "0.14", default-features = false, features = ['termion'] }
 termion = "1.5"
 lazy_static = "1.4.0"
 num_cpus = "1.13"
+
+[profile.release]
+opt-level = 3
+debug = false
+debug-assertions = false
+overflow-checks = false
+panic = 'abort'

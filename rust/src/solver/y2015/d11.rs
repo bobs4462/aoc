@@ -22,57 +22,99 @@ impl Solver for D11 {
         Ok(())
     }
 
-    fn solve_part_one(&self, data: Vec<u8>) -> Solution {
-        drop(data);
-        Solution::new("", "".to_string())
+    fn solve_part_one(&self, mut data: Vec<u8>) -> Solution {
+        for i in data.iter_mut() {
+            *i -= 0x61;
+        }
+        while Self::wrong(&mut data) {
+            Self::increment(&mut data);
+        }
+        for i in data.iter_mut() {
+            *i += 0x61;
+        }
+        Solution::new("The solution is", String::from_utf8(data).unwrap())
     }
 
-    fn solve_part_two(&self, data: Vec<u8>) -> Solution {
-        drop(data);
-        Solution::new("", "".to_string())
+    fn solve_part_two(&self, mut data: Vec<u8>) -> Solution {
+        for i in data.iter_mut() {
+            *i -= 0x61;
+        }
+        while Self::wrong(&mut data) {
+            Self::increment(&mut data);
+        }
+        data[7] += 1;
+        while Self::wrong(&mut data) {
+            Self::increment(&mut data);
+        }
+        for i in data.iter_mut() {
+            *i += 0x61;
+        }
+        Solution::new("The solution is", String::from_utf8(data).unwrap())
     }
 }
 
 impl D11 {
-    fn check(&self, pass: &[u8]) -> bool {
-        let mut cond1 = false;
-        for straight in pass.windows(3) {
-            cond1 = (straight[2] - straight[1]) - (straight[1] - straight[0]) == 0;
+    fn wrong(pass: &[u8]) -> bool {
+        let mut auxilary = pass[0];
+        let mut prev = pass[1];
+        let mut ok = false;
+        for &c in &pass[2..] {
+            if c.wrapping_sub(prev) == 1 && c.wrapping_sub(auxilary) == 2 {
+                ok = true;
+                break;
+            }
+            auxilary = prev;
+            prev = c;
         }
-        if !cond1 {
-            return false;
+        if !ok {
+            return true;
         }
+        prev = pass[0];
+        auxilary = 0;
         let mut iter = pass.windows(2);
-        let mut pairs: usize = 0;
-        while let Some(v) = iter.next() {
-            if v[0] == v[1] {
-                iter.next();
-                pairs += 1;
+        while let Some(pair) = iter.next() {
+            let (&a, &b) = unsafe { (pair.get_unchecked(0), pair.get_unchecked(1)) };
+            if a == b && a != prev {
+                auxilary += 1;
+                prev = a;
             }
         }
-        pairs > 1
+        auxilary < 2
+    }
+    fn increment(pass: &mut [u8]) {
+        for c in pass.iter_mut().rev() {
+            *c += 1;
+            *c += BAD.contains(c) as u8;
+            if *c / 26 != 1 {
+                break;
+            }
+            *c %= 26;
+        }
+    }
+}
+
+const BAD: [u8; 3] = [0xA, 0xD, 0xF];
+
+#[cfg(test)]
+mod tests {
+    use super::Solver;
+    #[test]
+    fn test_increment() {
+        let mut data = vec![1, 2, 3, 4, 5, 6, 25, 25];
+        super::D11::increment(&mut data);
+        assert_eq!(data, vec![1, 2, 3, 4, 5, 7, 0, 0]);
+        super::D11::increment(&mut data);
+        assert_eq!(data, vec![1, 2, 3, 4, 5, 7, 0, 1]);
     }
 
-    fn try_solve(&self, pass: &[u8]) -> Option<Vec<u8>> {
-        if self.check(pass) {
-            return Some(pass.to_vec());
-        }
-        let mut next: Option<Vec<u8>> = None;
-        let mut new: Vec<u8> = Vec::with_capacity(8);
-        if (pass[2] - pass[1]) - (pass[1] - pass[0]) == 0 {
-            new.push(pass[0]);
-            new.push(pass[1]);
-            new.push(pass[2]);
-            if pass[4] > pass[5] {
-                new.push(pass[4]);
-                new.push(pass[4]);
-            }
-            if pass[6] > pass[7] {
-                new.push(pass[6]);
-                new.push(pass[6]);
-            }
-            next = Some(new);
-        }
-        next
+    #[test]
+    fn test_part_one() {
+        let data = b"abchzxkj".to_vec();
+        let solver = super::D11;
+        let res = solver.solve_part_one(data);
+        assert_eq!(res.value, "abchzzmm");
+        let data = b"abcdefgh".to_vec();
+        let res = solver.solve_part_one(data);
+        assert_eq!(res.value, "abcdffaa");
     }
 }

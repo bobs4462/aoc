@@ -27,12 +27,12 @@ impl Solver for D4 {
 
 impl D4 {
     fn find_num(&self, data: Vec<u8>, compare_to: u32) -> Solution {
-        let cores = num_cpus::get() - 1;
+        let cores = num_cpus::get();
         let (tx, rx) = mpsc::channel::<usize>();
         for c in 0..cores {
             let tx = tx.clone();
             let len = data.len();
-            let mut original = Vec::with_capacity(len + 10);
+            let mut original = Vec::with_capacity(128);
             original.append(&mut data.clone());
             thread::spawn(move || {
                 let mut tmp: Vec<u8> = Vec::with_capacity(10);
@@ -50,7 +50,7 @@ impl D4 {
                             _ => break,
                         }
                     }
-                    original.resize(len, 0);
+                    original.truncate(len);
                 }
             });
         }
