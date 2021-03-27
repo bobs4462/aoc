@@ -1,11 +1,11 @@
 /// --- Day 9: All in a Single Night ---
 pub struct D9;
 
+use crate::solver::utils::Permutator;
 use crate::solver::{Solution, Solver};
 use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
-    marker::PhantomData,
     rc::Rc,
 };
 
@@ -186,77 +186,6 @@ Tambi to Straylight = 70"#;
         let res = solver.solve_part_two(DATA.as_bytes().to_vec());
         assert_eq!(res.value, "804");
     }
-    #[test]
-    fn test_permutator() {
-        let res = super::part_two_v2(DATA.as_bytes().to_vec());
-        println!("RESULT: {:?}", res);
-        assert_eq!(res, (207, 804));
-    }
-}
-
-/// Permuation generator, using Narayana’s next single permutation algorithm
-struct Permutator<'a, T: PartialEq + Ord + 'a> {
-    // Actually I just wrote it for fun :)
-    collection: *mut T,
-    len: usize,
-    permutaions: u128,
-    factorial: u128,
-    _marker: PhantomData<&'a mut T>,
-}
-
-#[allow(dead_code)]
-impl<'a, T: PartialEq + Ord> Permutator<'a, T> {
-    fn new(collection: &'a mut [T]) -> Self {
-        collection.sort();
-        let factorial = fact(collection.len() as u8);
-        Permutator {
-            collection: collection.as_mut_ptr(),
-            len: collection.len(),
-            permutaions: 0,
-            factorial,
-            _marker: PhantomData,
-        }
-    }
-
-    #[inline]
-    fn done(&self) -> bool {
-        self.permutaions == self.factorial
-    }
-}
-impl<'a, T: PartialEq + Ord> Iterator for Permutator<'a, T> {
-    type Item = &'a [T];
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.done() {
-            return None;
-        }
-        let slice = unsafe { std::slice::from_raw_parts_mut(self.collection, self.len) };
-        let iter = slice.windows(2).enumerate();
-        let mut k: usize = 0;
-        let mut j: usize = 0;
-        for (i, p) in iter {
-            if p[0] < p[1] {
-                k = i;
-            }
-        }
-        let iter = slice[k + 1..].iter().enumerate();
-        for (i, t) in iter {
-            if slice[k] < *t {
-                j = i + k + 1;
-            }
-        }
-        slice.swap(k, j);
-        slice[k + 1..].reverse();
-        self.permutaions += 1;
-        Some(slice)
-    }
-}
-
-fn fact(val: u8) -> u128 {
-    let mut res = 1;
-    for i in 1..=val {
-        res *= i as u128;
-    }
-    res
 }
 
 /// Made this version based on brute force permutations of all possible routes

@@ -101,4 +101,5 @@ pub trait Solver: Sync {
     }
 }
 
+mod utils;
 pub mod y2015;
