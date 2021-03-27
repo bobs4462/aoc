@@ -1,8 +1,6 @@
 /// --- Day 13: Knights of the Dinner Table ---
 pub struct D13;
 
-use std::collections::HashMap;
-
 use crate::solver::{utils::Permutator, Solution, Solver};
 
 impl Solver for D13 {
@@ -28,35 +26,64 @@ impl Solver for D13 {
         Ok(())
     }
     fn solve_part_one(&self, data: Vec<u8>) -> Solution {
-        let (relations, mut attendees) = Self::relations(data.as_slice());
+        let mut attendees = Self::relations(data.as_slice());
         let permutator = Permutator::new(&mut attendees);
         let mut optimum = 0;
         for p in permutator {
-            optimum = optimum.max(Self::happines(p, &relations));
+            optimum = optimum.max(Self::happines(p));
         }
         Solution::new("The optimum change in happines is:", optimum.to_string())
     }
     fn solve_part_two(&self, data: Vec<u8>) -> Solution {
-        let start = std::time::Instant::now();
-        let (relations, mut attendees) = Self::relations(data.as_slice());
-        attendees.push(b"Z");
+        let mut attendees = Self::relations(data.as_slice());
+        attendees.insert(
+            0,
+            Attendee {
+                attitudes: Vec::new(),
+                id: usize::MAX,
+            },
+        );
         let permutator = Permutator::new(&mut attendees);
         let mut optimum = 0;
         for p in permutator {
-            optimum = optimum.max(Self::happines(p, &relations));
+            optimum = optimum.max(Self::happines(p));
         }
-        println!("TIME: {:?}", start.elapsed());
         Solution::new("The optimum change in happines is:", optimum.to_string())
     }
 }
 
+#[derive(Debug)]
+struct Attendee {
+    attitudes: Vec<isize>,
+    id: usize,
+}
+
+impl PartialEq for Attendee {
+    fn eq(&self, other: &Self) -> bool {
+        self.id.eq(&other.id)
+    }
+}
+impl Eq for Attendee {}
+
+impl PartialOrd for Attendee {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.id.partial_cmp(&other.id)
+    }
+}
+
+impl Ord for Attendee {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.id.cmp(&other.id)
+    }
+}
+
 impl D13 {
-    fn relations(data: &[u8]) -> (HashMap<(&[u8], &[u8]), isize>, Vec<&[u8]>) {
-        let mut relations = HashMap::new();
-        let mut attendees = Vec::new();
+    fn relations(data: &[u8]) -> Vec<Attendee> {
+        let mut attendees: Vec<Attendee> = Vec::with_capacity(10);
+        let mut prev: &[u8] = &[];
+        let mut id: usize = 0;
         for line in data.split(|&c| c == b'\n') {
             let mut parts = line.split(|c| c.is_ascii_whitespace());
-            // println!("LINE: {:?}", parts.clone().collect::<Vec<&[u8]>>());
             let attnd = parts.nth(0).unwrap();
             let modfr = match parts.nth(1) {
                 Some(b"gain") => 1,
@@ -68,27 +95,41 @@ impl D13 {
                     .parse()
                     .unwrap()
             };
-            let nghbr = parts.nth(6).unwrap();
-            relations.insert((attnd, &nghbr[..nghbr.len() - 1]), hppns * modfr);
-            attendees.push(attnd);
+            if attnd != prev {
+                if let Some(a) = attendees.last_mut() {
+                    a.attitudes.insert(id - 1, 0);
+                }
+                attendees.push(Attendee {
+                    attitudes: vec![hppns * modfr],
+                    id,
+                });
+                id += 1;
+            } else {
+                attendees.last_mut().unwrap().attitudes.push(hppns * modfr);
+            }
+            prev = attnd;
         }
-        attendees.dedup();
-        (relations, attendees)
+        attendees.last_mut().unwrap().attitudes.insert(id - 1, 0);
+        attendees
     }
 
-    fn happines(table: &[&[u8]], relations: &HashMap<(&[u8], &[u8]), isize>) -> isize {
+    fn happines(table: &[Attendee]) -> isize {
         let mut total = 0;
-        for pair in table.windows(2) {
-            // println!("KEY: {:?}");
-            total += relations.get(&(pair[0], pair[1])).map_or_else(|| 0, |c| *c);
-            total += relations.get(&(pair[1], pair[0])).map_or_else(|| 0, |c| *c);
+        let len = table.len();
+        for i in 0..len {
+            unsafe {
+                let current = table.get_unchecked(i).id;
+                let next = table.get_unchecked((i + 1) % len).id;
+                if current == usize::MAX || next == usize::MAX {
+                    continue;
+                }
+                total += table.get_unchecked(i).attitudes.get_unchecked(next);
+                total += table
+                    .get_unchecked((i + 1) % len)
+                    .attitudes
+                    .get_unchecked(current);
+            }
         }
-        total += relations
-            .get(&(*(table.last().unwrap()), table[0]))
-            .map_or_else(|| 0, |c| *c);
-        total += relations
-            .get(&(table[0], *(table.last().unwrap())))
-            .map_or_else(|| 0, |c| *c);
         total
     }
 }
