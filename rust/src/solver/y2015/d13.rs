@@ -17,7 +17,7 @@ impl Solver for D13 {
 
             if let Err(_) = std::str::from_utf8(l[3]).unwrap().parse::<usize>() {
                 return Err(format!(
-                    "Expected a numbe at 4th word, line at {}: {}",
+                    "Expected a number at 4th word, line at {}: {}",
                     i,
                     std::str::from_utf8(l[3]).unwrap()
                 ));
@@ -26,7 +26,7 @@ impl Solver for D13 {
         Ok(())
     }
     fn solve_part_one(&self, data: Vec<u8>) -> Solution {
-        let mut attendees = Self::relations(data.as_slice());
+        let mut attendees = Self::attendees(data.as_slice());
         let permutator = Permutator::new(&mut attendees);
         let mut optimum = 0;
         for p in permutator {
@@ -35,7 +35,7 @@ impl Solver for D13 {
         Solution::new("The optimum change in happines is:", optimum.to_string())
     }
     fn solve_part_two(&self, data: Vec<u8>) -> Solution {
-        let mut attendees = Self::relations(data.as_slice());
+        let mut attendees = Self::attendees(data.as_slice());
         attendees.insert(
             0,
             Attendee {
@@ -78,7 +78,7 @@ impl Ord for Attendee {
 }
 
 impl D13 {
-    fn relations(data: &[u8]) -> Vec<Attendee> {
+    fn attendees(data: &[u8]) -> Vec<Attendee> {
         let mut attendees: Vec<Attendee> = Vec::with_capacity(10);
         let mut prev: &[u8] = &[];
         let mut id: usize = 0;
@@ -113,6 +113,7 @@ impl D13 {
         attendees
     }
 
+    #[inline]
     fn happines(table: &[Attendee]) -> isize {
         let mut total = 0;
         let len = table.len();
