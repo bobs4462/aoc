@@ -28,33 +28,35 @@ impl<'a, T: Ord> Permutator<'a, T> {
         self.permutaions == self.factorial
     }
 }
-impl<'a, T: Ord> Iterator for Permutator<'a, T> {
+impl<'a, T: Ord + std::fmt::Debug> Iterator for Permutator<'a, T> {
     type Item = &'a [T];
     fn next(&mut self) -> Option<Self::Item> {
         if self.done() {
             return None;
         }
         let slice = unsafe { std::slice::from_raw_parts_mut(self.collection, self.len) };
-        let iter = slice.windows(2).enumerate();
+        self.permutaions += 1;
+        if self.permutaions == 1 {
+            return Some(slice);
+        }
         let mut k: usize = 0;
         let mut j: usize = 0;
-        for (i, p) in iter {
-            if p[0] < p[1] {
-                k = i;
+        let mut prev: &T = slice.last().unwrap();
+        for (i, t) in slice[..self.len - 1].iter().rev().enumerate() {
+            if prev > t {
+                k = self.len - i - 2;
+                break;
             }
+            prev = t
         }
-        if *slice.last().unwrap() < slice[0] {
-            k = 0;
-        }
-        let iter = slice[k + 1..].iter().enumerate();
-        for (i, t) in iter {
+
+        for (i, t) in slice[k + 1..].iter().enumerate() {
             if slice[k] < *t {
                 j = i + k + 1;
             }
         }
         slice.swap(k, j);
         slice[k + 1..].reverse();
-        self.permutaions += 1;
         Some(slice)
     }
 }
@@ -73,16 +75,16 @@ mod tests {
     fn test_permutator() {
         let mut data = [1, 2, 3];
         const RES: [[i32; 3]; 6] = [
+            [1, 2, 3],
             [1, 3, 2],
             [2, 1, 3],
             [2, 3, 1],
             [3, 1, 2],
             [3, 2, 1],
-            [3, 1, 2],
         ];
         let permutator = super::Permutator::new(&mut data);
         for (i, p) in permutator.enumerate() {
-            assert_eq!(RES[i], p);
+            println!("#{}. {:?}", i, p);
             assert_eq!(RES[i], p);
         }
     }
