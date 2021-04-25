@@ -12,6 +12,7 @@ mod d11;
 mod d12;
 mod d13;
 mod d14;
+mod d15;
 
 pub use d01::D1;
 pub use d02::D2;
@@ -27,3 +28,4 @@ pub use d11::D11;
 pub use d12::D12;
 pub use d13::D13;
 pub use d14::D14;
+pub use d15::D15;
