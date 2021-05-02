@@ -91,3 +91,13 @@ impl D15 {
         list
     }
 }
+
+struct DistributionPermutator(Vec<i32>);
+
+impl DistributionPermutator {
+    fn new(parts: usize) -> Self {
+        let mut dp = DistributionPermutator(vec![1; parts]);
+        dp.0[0] = (100 - parts + 1) as i32;
+        dp
+    }
+}
