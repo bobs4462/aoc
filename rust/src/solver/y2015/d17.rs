@@ -1,5 +1,5 @@
-/// --- Day 16: Aunt Sue ---
-pub struct D16;
+/// --- Day 17: No Such Thing as Too Much ---
+pub struct D17;
 
 use crate::solver::{Solution, Solver};
 
@@ -14,7 +14,7 @@ const TREES: usize = 3;
 const CARS: usize = 2;
 const PERFUMES: usize = 1;
 
-impl Solver for D16 {
+impl Solver for D17 {
     fn validate(&self, input: &[u8]) -> Result<(), String> {
         let lines = input.split(|&c| c == b'\n');
         for l in lines {
@@ -196,82 +196,5 @@ impl Solver for D16 {
             }
         }
         Solution::new("The aunt Sue has a number: ", the_aunt.number.to_string())
-    }
-}
-
-struct AuntieSue {
-    number: usize,
-    children: Option<usize>,
-    cats: Option<usize>,
-    samoyeds: Option<usize>,
-    pomeranians: Option<usize>,
-    akitas: Option<usize>,
-    vizslas: Option<usize>,
-    goldfish: Option<usize>,
-    trees: Option<usize>,
-    cars: Option<usize>,
-    perfumes: Option<usize>,
-}
-
-impl AuntieSue {
-    fn new(line: &[u8], number: usize) -> Self {
-        let parts = line
-            .splitn(2, |&c| c == b':')
-            .nth(1)
-            .unwrap()
-            .split(|&c| c == b',');
-        let mut children: Option<usize> = None;
-        let mut cats: Option<usize> = None;
-        let mut samoyeds: Option<usize> = None;
-        let mut pomeranians: Option<usize> = None;
-        let mut akitas: Option<usize> = None;
-        let mut vizslas: Option<usize> = None;
-        let mut goldfish: Option<usize> = None;
-        let mut trees: Option<usize> = None;
-        let mut cars: Option<usize> = None;
-        let mut perfumes: Option<usize> = None;
-        for p in parts {
-            let mut prop = p.split(|&c| c == b':');
-
-            match prop.next() {
-                Some(b" children") => children = Some((prop.next().unwrap()[1] - 48) as usize),
-                Some(b" cats") => cats = Some((prop.next().unwrap()[1] - 48) as usize),
-                Some(b" samoyeds") => samoyeds = Some((prop.next().unwrap()[1] - 48) as usize),
-                Some(b" pomeranians") => {
-                    pomeranians = Some((prop.next().unwrap()[1] - 48) as usize)
-                }
-                Some(b" akitas") => akitas = Some((prop.next().unwrap()[1] - 48) as usize),
-                Some(b" vizslas") => vizslas = Some((prop.next().unwrap()[1] - 48) as usize),
-                Some(b" goldfish") => goldfish = Some((prop.next().unwrap()[1] - 48) as usize),
-                Some(b" trees") => trees = Some((prop.next().unwrap()[1] - 48) as usize),
-                Some(b" cars") => cars = Some((prop.next().unwrap()[1] - 48) as usize),
-                Some(b" perfumes") => perfumes = Some((prop.next().unwrap()[1] - 48) as usize),
-                _ => panic!("Wrong input data!"),
-            }
-        }
-        AuntieSue {
-            number,
-            children,
-            cats,
-            samoyeds,
-            pomeranians,
-            akitas,
-            vizslas,
-            goldfish,
-            trees,
-            cars,
-            perfumes,
-        }
-    }
-}
-
-impl D16 {
-    fn aunties(input: Vec<u8>) -> Vec<AuntieSue> {
-        let mut aunties = Vec::with_capacity(500);
-        let lines = input.split(|&c| c == b'\n');
-        for (i, l) in lines.enumerate() {
-            aunties.push(AuntieSue::new(l, i + 1));
-        }
-        aunties
     }
 }
