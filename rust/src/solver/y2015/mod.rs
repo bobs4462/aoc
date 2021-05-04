@@ -16,6 +16,7 @@ mod d15;
 mod d16;
 mod d17;
 mod d18;
+mod d19;
 
 pub use d01::D1;
 pub use d02::D2;
@@ -35,3 +36,4 @@ pub use d15::D15;
 pub use d16::D16;
 pub use d17::D17;
 pub use d18::D18;
+pub use d19::D19;
