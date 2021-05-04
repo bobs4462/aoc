@@ -16,7 +16,7 @@ impl Solver for D18 {
 
     fn solve_part_one(&self, data: Vec<u8>) -> Solution {
         let mut animator = Animator::new(data, false);
-        for _ in 0..4 {
+        for _ in 0..100 {
             animator.next();
         }
         let state = if animator.state == 1 {
@@ -29,8 +29,17 @@ impl Solver for D18 {
     }
 
     fn solve_part_two(&self, data: Vec<u8>) -> Solution {
-        drop(data);
-        Solution::new("Number of perfect fits is: ", "".to_string())
+        let mut animator = Animator::new(data, true);
+        for _ in 0..100 {
+            animator.next();
+        }
+        let state = if animator.state == 1 {
+            &animator.state1
+        } else {
+            &animator.state2
+        };
+        let lights_on = state.iter().fold(0, |acc, &l| acc + (l == 1) as usize);
+        Solution::new("Number of lights on is: ", lights_on.to_string())
     }
 }
 
@@ -57,6 +66,12 @@ impl Animator {
                     state1.push(0)
                 }
             }
+        }
+        if stuck {
+            state1[0] = 1;
+            state1[side - 1] = 1;
+            state1[side * side - side] = 1;
+            state1[side * side - 1] = 1;
         }
         Animator {
             state1,
@@ -171,5 +186,22 @@ mod tests {
         // Change steps from 100 to 4 to test
         let res = solver.solve_part_one(data);
         assert_eq!(res.value, "4");
+    }
+
+    #[test]
+    fn test_part_two() {
+        let data = r#".#.#.#
+...##.
+#....#
+..#...
+#.#..#
+####.."#
+            .to_string()
+            .into_bytes();
+
+        let solver = D18;
+        // Change steps from 100 to 5 to test
+        let res = solver.solve_part_two(data);
+        assert_eq!(res.value, "17");
     }
 }
