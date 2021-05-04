@@ -3,198 +3,100 @@ pub struct D17;
 
 use crate::solver::{Solution, Solver};
 
-const CHILDREN: usize = 3;
-const CATS: usize = 7;
-const SAMOYEDS: usize = 2;
-const POMERANIANS: usize = 3;
-const AKITAS: usize = 0;
-const VIZSLAS: usize = 0;
-const GOLDFISH: usize = 5;
-const TREES: usize = 3;
-const CARS: usize = 2;
-const PERFUMES: usize = 1;
-
 impl Solver for D17 {
     fn validate(&self, input: &[u8]) -> Result<(), String> {
         let lines = input.split(|&c| c == b'\n');
         for l in lines {
-            let mut parts = l.splitn(2, |&c| c == b':');
-            parts.next();
-            let parts = parts.next().unwrap().split(|&c| c == b',');
-            for p in parts {
-                if !p.split(|&c| c == b':').nth(1).unwrap()[1].is_ascii_digit() {
-                    return Err(format!("Wrong line:\n{}", std::str::from_utf8(l).unwrap()));
-                }
+            if !l.iter().all(|&c| c.is_ascii_digit()) {
+                return Err(format!("Wrong line:\n{}", std::str::from_utf8(l).unwrap()));
             }
         }
         Ok(())
     }
 
     fn solve_part_one(&self, data: Vec<u8>) -> Solution {
-        let aunties = D16::aunties(data);
-        let mut the_aunt: &AuntieSue = &aunties[0];
-        let mut best_match = 0;
-        for a in &aunties {
-            let mut matches = 0;
-            if let Some(v) = a.children {
-                if v == CHILDREN {
-                    matches += 1;
-                } else {
-                    continue;
-                }
+        let containers = D17::containers(data);
+        let subsets = 2u32.pow(containers.len() as u32);
+        let mut fit = 0;
+        for st in 0..subsets {
+            let mut volume = 0;
+            for (i, v) in containers.iter().enumerate() {
+                volume += v * D17::on(st, i) as usize;
             }
-            if let Some(v) = a.cats {
-                if v == CATS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.samoyeds {
-                if v == SAMOYEDS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.pomeranians {
-                if v == POMERANIANS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.akitas {
-                if v == AKITAS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.vizslas {
-                if v == VIZSLAS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.goldfish {
-                if v == GOLDFISH {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.cars {
-                if v == CARS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.trees {
-                if v == TREES {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.perfumes {
-                if v == PERFUMES {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if best_match < matches {
-                the_aunt = a;
-                best_match = matches;
-            }
+            fit += 1 * (volume == 150) as usize;
         }
-        Solution::new("The aunt Sue has a number: ", the_aunt.number.to_string())
+        Solution::new("Number of perfect fits is: ", fit.to_string())
     }
 
     fn solve_part_two(&self, data: Vec<u8>) -> Solution {
-        let aunties = D16::aunties(data);
-        let mut the_aunt: &AuntieSue = &aunties[0];
-        let mut best_match = 0;
-        for a in &aunties {
-            let mut matches = 0;
-            if let Some(v) = a.children {
-                if v == CHILDREN {
-                    matches += 1;
-                } else {
-                    continue;
-                }
+        let containers = D17::containers(data);
+        let subsets = 2u32.pow(containers.len() as u32);
+        let mut quantity = Vec::with_capacity(1024);
+        let mut min = usize::MAX;
+        for st in 0..subsets {
+            let mut volume = 0;
+            let mut number = 0;
+            for (i, v) in containers.iter().enumerate() {
+                let on = D17::on(st, i) as usize;
+                volume += v * on;
+                number += 1 * on;
             }
-            if let Some(v) = a.cats {
-                if v > CATS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.samoyeds {
-                if v == SAMOYEDS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.pomeranians {
-                if v < POMERANIANS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.akitas {
-                if v == AKITAS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.vizslas {
-                if v == VIZSLAS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.goldfish {
-                if v < GOLDFISH {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.cars {
-                if v == CARS {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.trees {
-                if v > TREES {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if let Some(v) = a.perfumes {
-                if v == PERFUMES {
-                    matches += 1;
-                } else {
-                    continue;
-                }
-            }
-            if best_match < matches {
-                the_aunt = a;
-                best_match = matches;
+            if volume == 150 {
+                quantity.push(number);
+                min = min.min(number);
             }
         }
-        Solution::new("The aunt Sue has a number: ", the_aunt.number.to_string())
+        let mins = quantity.iter().filter(|&&q| q == min).count();
+        Solution::new("Min number of perfect fits is: ", mins.to_string())
+    }
+}
+
+impl D17 {
+    fn containers(input: Vec<u8>) -> Vec<usize> {
+        let mut containers = Vec::with_capacity(32);
+
+        let lines = input.split(|&c| c == b'\n');
+        for l in lines {
+            containers.push(std::str::from_utf8(l).unwrap().parse::<usize>().unwrap());
+        }
+
+        containers
+    }
+
+    #[inline]
+    fn on(subset: u32, ordinal: usize) -> bool {
+        let mask = 2u32.pow(ordinal as u32);
+        (subset & mask) != 0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Solver, D17};
+
+    #[test]
+    fn test_part_one() {
+        // Change the check volume from 150 to 25 to test
+        let data = b"20\n10\n15\n5\n5".to_vec();
+        let solver = D17;
+        let res = solver.solve_part_one(data);
+        assert_eq!(res.value, "4");
+    }
+
+    #[test]
+    fn test_part_two() {
+        // Change the check volume from 150 to 25 to test
+        let data = b"20\n10\n15\n5\n5".to_vec();
+        let solver = D17;
+        let res = solver.solve_part_two(data);
+        assert_eq!(res.value, "3");
+    }
+
+    #[test]
+    fn test_on() {
+        assert!(D17::on(1, 0));
+        assert!(D17::on(2, 1));
+        assert!(D17::on(3, 0));
+        assert!(D17::on(3, 1));
     }
 }
