@@ -60,4 +60,17 @@ impl Reactor {
             molecule,
         }
     }
+
+    fn calibrate(&self) -> usize {
+        let mut sequence = self.molecule.iter().peekable();
+        while let Some(v) = sequence.next() {
+            let mut source = vec![v];
+            if let Some(&n) = sequence.peek() {
+                if n.is_ascii_lowercase() {}
+                source.push(n);
+                sequence.next();
+            }
+        }
+        0
+    }
 }
