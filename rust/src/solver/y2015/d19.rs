@@ -1,6 +1,7 @@
 /// --- Day 19: Medicine for Rudolph ---
 pub struct D19;
 
+use std::collections::HashSet;
 use std::io::Read;
 
 use crate::solver::{Solution, Solver};
@@ -27,30 +28,31 @@ impl Solver for D19 {
     }
 
     fn solve_part_one(&self, data: Vec<u8>) -> Solution {
-        Solution::new("Number of lights on is: ", "".to_string())
+        let mut reactor = Reactor::new(&data);
+        let unique = reactor.calibrate();
+
+        Solution::new("Unique number of replacements", unique.to_string())
     }
 
-    fn solve_part_two(&self, data: Vec<u8>) -> Solution {
+    fn solve_part_two(&self, _data: Vec<u8>) -> Solution {
         Solution::new("Number of lights on is: ", "".to_string())
     }
 }
 
 fn shash<T: Iterator<Item = u8>>(string: T) -> usize {
     let mut res = 0;
-    let mut len = 0;
 
     for (i, b) in string.enumerate() {
-        res += b as usize ^ i + b as usize * i;
-        len = i + 1;
+        res += ((b as usize ^ i) + (b as usize & i)) * i;
     }
 
-    res + len
+    res
 }
 
 struct Reactor {
     original: Vec<u8>,
     transforms: Vec<(Vec<u8>, Vec<u8>)>,
-    hashes: Vec<usize>,
+    hashes: HashSet<Vec<u8>>,
 }
 
 impl Reactor {
@@ -92,31 +94,35 @@ impl Reactor {
         Reactor {
             original,
             transforms,
-            hashes: Vec::new(),
+            hashes: HashSet::new(),
         }
     }
-    fn ignite(&mut self) -> usize {
+    fn calibrate(&mut self) -> usize {
         for (s, d) in &self.transforms {
             let mut i = 0;
 
             for (j, b) in self.original.iter().enumerate() {
                 if b != unsafe { s.get_unchecked(i) } {
                     i = 0;
+                    if b == unsafe { s.get_unchecked(i) } {
+                        i = 1;
+                    }
                     continue;
                 }
                 if i == s.len() - 1 {
-                    let chain = self.original[0..i - s.len() + 1]
+                    let chain = self.original[0..j + 1 - s.len()]
                         .chain(&d[..])
                         .chain(&self.original[j + 1..])
                         .bytes()
                         .flatten();
-                    self.hashes.push(shash(chain));
+                    self.hashes.insert(chain.collect());
+                    i = 0;
                 } else {
                     i += 1;
                 }
             }
         }
-        0
+        self.hashes.len()
     }
 }
 
@@ -141,5 +147,31 @@ HOH"#
         assert_eq!(r.transforms[1].1, vec![b'O', b'H']);
         assert_eq!(r.transforms[2].0, vec![b'O']);
         assert_eq!(r.transforms[2].1, vec![b'H', b'H']);
+    }
+
+    use crate::solver::Solver;
+
+    #[test]
+    fn test_part_one() {
+        let solver = super::D19;
+        let mut data = r#"H => HO
+H => OH
+O => HH
+
+HOH"#
+            .as_bytes()
+            .to_vec();
+
+        let res = solver.solve_part_one(data);
+        assert_eq!(res.value, "4");
+        data = r#"H => HO
+H => OH
+O => HH
+
+HOHOHO"#
+            .as_bytes()
+            .to_vec();
+        let res = solver.solve_part_one(data);
+        assert_eq!(res.value, "7");
     }
 }
