@@ -1,7 +1,6 @@
 /// --- Day 19: Medicine for Rudolph ---
 pub struct D19;
 
-use std::collections::HashSet;
 use std::io::Read;
 
 use crate::solver::{Solution, Solver};
@@ -43,7 +42,7 @@ fn shash<T: Iterator<Item = u8>>(string: T) -> usize {
     let mut res = 0;
 
     for (i, b) in string.enumerate() {
-        res += ((b as usize ^ i) + (b as usize & i)) * i;
+        res += (b as usize ^ i) * (i + 1) & (b as usize * i); // TODO improve hash function
     }
 
     res
@@ -52,7 +51,7 @@ fn shash<T: Iterator<Item = u8>>(string: T) -> usize {
 struct Reactor {
     original: Vec<u8>,
     transforms: Vec<(Vec<u8>, Vec<u8>)>,
-    hashes: HashSet<Vec<u8>>,
+    hashes: Vec<usize>,
 }
 
 impl Reactor {
@@ -94,7 +93,7 @@ impl Reactor {
         Reactor {
             original,
             transforms,
-            hashes: HashSet::new(),
+            hashes: Vec::new(),
         }
     }
     fn calibrate(&mut self) -> usize {
@@ -115,13 +114,15 @@ impl Reactor {
                         .chain(&self.original[j + 1..])
                         .bytes()
                         .flatten();
-                    self.hashes.insert(chain.collect());
+                    self.hashes.push(shash(chain));
                     i = 0;
                 } else {
                     i += 1;
                 }
             }
         }
+        self.hashes.sort();
+        self.hashes.dedup();
         self.hashes.len()
     }
 }
