@@ -27,31 +27,27 @@ impl Solver for D19 {
     }
 
     fn solve_part_one(&self, data: Vec<u8>) -> Solution {
-        let mut reactor = Reactor::new(&data);
+        let reactor = Reactor::new(&data);
         let unique = reactor.calibrate();
 
         Solution::new("Unique number of replacements", unique.to_string())
     }
 
-    fn solve_part_two(&self, _data: Vec<u8>) -> Solution {
-        Solution::new("Number of lights on is: ", "".to_string())
+    fn solve_part_two(&self, data: Vec<u8>) -> Solution {
+        let mut reactor = Reactor::new(&data);
+        let steps = reactor.synthesize();
+
+        Solution::new(
+            "Number of steps to produce the molecule: ",
+            steps.to_string(),
+        )
     }
-}
-
-fn shash<T: Iterator<Item = u8>>(string: T) -> usize {
-    let mut res = 0;
-
-    for (i, b) in string.enumerate() {
-        res += (b as usize ^ i) * (i + 1) & (b as usize * i); // TODO improve hash function
-    }
-
-    res
 }
 
 struct Reactor {
     original: Vec<u8>,
     transforms: Vec<(Vec<u8>, Vec<u8>)>,
-    hashes: Vec<usize>,
+    electrons: Vec<Vec<u8>>,
 }
 
 impl Reactor {
@@ -64,43 +60,76 @@ impl Reactor {
 
         let lines = setup.split(|&b| b == b'\n');
 
+        let mut electrons = Vec::with_capacity(8);
+
         for l in lines {
             if l.is_empty() {
                 break;
             }
-            let mut source = Vec::new();
-            let mut dest = Vec::new();
 
-            let mut l = l.iter();
+            let mut l = l.split(|c| c.is_ascii_whitespace());
 
-            while let Some(b) = l.next() {
-                if b.is_ascii_whitespace() {
-                    break;
-                }
-                source.push(*b);
+            let source = l.next().unwrap().to_vec();
+            let dest = l.last().unwrap().to_vec();
+
+            if source.len() == 1 && source[0] == b'e' {
+                electrons.push(Vec::clone(&dest));
             }
-            while let Some(b) = l.next() {
-                if b.is_ascii_whitespace() {
-                    break;
-                }
-            }
-            while let Some(b) = l.next() {
-                dest.push(*b);
-            }
+
             transforms.push((source, dest));
         }
 
         Reactor {
             original,
             transforms,
-            hashes: Vec::new(),
+            electrons,
         }
     }
-    fn calibrate(&mut self) -> usize {
+
+    fn synthesize(&mut self) -> usize {
+        let mut staged = Vec::clone(&self.electrons);
+        let mut intermediaries = Vec::new();
+        let mut step = 2;
+
+        'outer: loop {
+            println!(
+                "STEP: {}: {:?}",
+                step,
+                staged
+                    .iter()
+                    .map(|s| std::str::from_utf8(s).unwrap())
+                    .collect::<Vec<&str>>()
+            );
+            for s in &staged {
+                let mut molecules = self.construct(&s);
+                if molecules.iter().any(|m| *m == self.original) {
+                    break 'outer;
+                }
+                intermediaries.append(&mut molecules);
+            }
+            intermediaries.sort();
+            intermediaries.dedup();
+
+            staged = intermediaries;
+            intermediaries = Vec::new();
+
+            step += 1;
+        }
+        step
+    }
+
+    fn calibrate(&self) -> usize {
+        let variations = self.construct(&self.original);
+
+        variations.len()
+    }
+
+    fn construct(&self, molecule: &Vec<u8>) -> Vec<Vec<u8>> {
+        let mut molecules = Vec::new();
         for (s, d) in &self.transforms {
             let mut i = 0;
 
-            for (j, b) in self.original.iter().enumerate() {
+            for (j, b) in molecule.iter().enumerate() {
                 if b != unsafe { s.get_unchecked(i) } {
                     i = 0;
                     if b == unsafe { s.get_unchecked(i) } {
@@ -109,21 +138,22 @@ impl Reactor {
                     continue;
                 }
                 if i == s.len() - 1 {
-                    let chain = self.original[0..j + 1 - s.len()]
+                    let chain = molecule[0..j + 1 - s.len()]
                         .chain(&d[..])
-                        .chain(&self.original[j + 1..])
+                        .chain(&molecule[j + 1..])
                         .bytes()
                         .flatten();
-                    self.hashes.push(shash(chain));
+                    molecules.push(chain.collect::<Vec<u8>>());
+
                     i = 0;
                 } else {
                     i += 1;
                 }
             }
         }
-        self.hashes.sort();
-        self.hashes.dedup();
-        self.hashes.len()
+        molecules.sort();
+        molecules.dedup();
+        molecules
     }
 }
 
@@ -174,5 +204,34 @@ HOHOHO"#
             .to_vec();
         let res = solver.solve_part_one(data);
         assert_eq!(res.value, "7");
+    }
+
+    #[test]
+    fn test_part_two() {
+        let solver = super::D19;
+        let data = r#"e => H
+e => O
+H => HO
+H => OH
+O => HH
+
+HOH"#
+            .as_bytes()
+            .to_vec();
+
+        let res = solver.solve_part_two(data);
+        assert_eq!(res.value, "3");
+
+        let data = r#"e => H
+e => O
+H => HO
+H => OH
+O => HH
+
+HOHOHO"#
+            .as_bytes()
+            .to_vec();
+        let res = solver.solve_part_two(data);
+        assert_eq!(res.value, "6");
     }
 }
