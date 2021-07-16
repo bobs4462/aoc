@@ -185,33 +185,4 @@ HOHOHO"#
         let res = solver.solve_part_one(data);
         assert_eq!(res.value, "7");
     }
-
-    #[test]
-    fn test_part_two() {
-        let solver = super::D19;
-        let data = r#"e => H
-e => O
-H => HO
-H => OH
-O => HH
-
-HOH"#
-            .as_bytes()
-            .to_vec();
-
-        let res = solver.solve_part_two(data);
-        assert_eq!(res.value, "3");
-
-        let data = r#"e => H
-e => O
-H => HO
-H => OH
-O => HH
-
-HOHOHO"#
-            .as_bytes()
-            .to_vec();
-        let res = solver.solve_part_two(data);
-        assert_eq!(res.value, "6");
-    }
 }
