@@ -34,7 +34,7 @@ impl Solver for D19 {
     }
 
     fn solve_part_two(&self, data: Vec<u8>) -> Solution {
-        let mut reactor = Reactor::new(&data);
+        let reactor = Reactor::new(&data);
         let steps = reactor.synthesize();
 
         Solution::new(
@@ -47,7 +47,6 @@ impl Solver for D19 {
 struct Reactor {
     original: Vec<u8>,
     transforms: Vec<(Vec<u8>, Vec<u8>)>,
-    electrons: Vec<Vec<u8>>,
 }
 
 impl Reactor {
@@ -60,8 +59,6 @@ impl Reactor {
 
         let lines = setup.split(|&b| b == b'\n');
 
-        let mut electrons = Vec::with_capacity(8);
-
         for l in lines {
             if l.is_empty() {
                 break;
@@ -72,50 +69,33 @@ impl Reactor {
             let source = l.next().unwrap().to_vec();
             let dest = l.last().unwrap().to_vec();
 
-            if source.len() == 1 && source[0] == b'e' {
-                electrons.push(Vec::clone(&dest));
-            }
-
             transforms.push((source, dest));
         }
 
         Reactor {
             original,
             transforms,
-            electrons,
         }
     }
 
-    fn synthesize(&mut self) -> usize {
-        let mut staged = Vec::clone(&self.electrons);
-        let mut intermediaries = Vec::new();
-        let mut step = 2;
+    fn synthesize(&self) -> usize {
+        let mut rnar = 0;
+        let mut y = 0;
+        let mut atoms = 0;
 
-        'outer: loop {
-            println!(
-                "STEP: {}: {:?}",
-                step,
-                staged
-                    .iter()
-                    .map(|s| std::str::from_utf8(s).unwrap())
-                    .collect::<Vec<&str>>()
-            );
-            for s in &staged {
-                let mut molecules = self.construct(&s);
-                if molecules.iter().any(|m| *m == self.original) {
-                    break 'outer;
-                }
-                intermediaries.append(&mut molecules);
+        for b in &self.original {
+            if let b'r' | b'n' = b {
+                rnar += 1;
+            } else if *b == b'Y' {
+                y += 1;
             }
-            intermediaries.sort();
-            intermediaries.dedup();
 
-            staged = intermediaries;
-            intermediaries = Vec::new();
-
-            step += 1;
+            if b.is_ascii_uppercase() {
+                atoms += 1;
+            }
         }
-        step
+
+        atoms - rnar - 2 * y - 1
     }
 
     fn calibrate(&self) -> usize {
